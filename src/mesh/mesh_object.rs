@@ -42,7 +42,7 @@ pub struct Mesh {
 impl Mesh {
     // Using another function specified in "../mod.rs" we get the data from an obj this is to make the
     // process more broad 
-    pub fn new(screen: &Display, object_data: &Vec<mesh_object::Vertex>, shader_data: ShaderData) -> Mesh {
+    pub fn new(screen: &Display<WindowSurface>, object_data: &Vec<mesh_object::Vertex>, shader_data: ShaderData) -> Mesh {
         let (tex_s, vertex_s, fragment_s):(&str, &str, &str) = 
         (shader_data.tex_filename.as_str(), 
          shader_data.vertex_shader.as_str(), 
@@ -58,7 +58,7 @@ impl Mesh {
         return mesh
     }
     // from Shader Strings outputs a program used by another function which draws the Mesh
-    pub fn compile_program(screen: &Display, vertex_shader: &str, fragment_shader: &str) -> Program {
+    pub fn compile_program(screen: &Display<WindowSurface>, vertex_shader: &str, fragment_shader: &str) -> Program {
             let mut f_vrtx = File::open(vertex_shader).unwrap();
             let mut f_frgm = File::open(fragment_shader).unwrap();
             let (mut v_buffer, mut f_buffer) = (String::new(), String::new());
@@ -68,7 +68,7 @@ impl Mesh {
             let program = Program::from_source(screen, &v_buffer, &f_buffer, None).unwrap();
             return program
         }
-    pub fn texture(display: &Display, path: &str) -> SrgbTexture2d {
+    pub fn texture(display: &Display<WindowSurface>, path: &str) -> SrgbTexture2d {
         let image = image::load(BufReader::new(File::open(path).unwrap()), image::ImageFormat::Jpeg).unwrap().to_rgba8();
         let image_dimensions = image.dimensions();
         let image = glium::texture::RawImage2d::from_raw_rgba_reversed(&image.into_raw(), image_dimensions);

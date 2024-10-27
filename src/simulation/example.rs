@@ -8,7 +8,10 @@ use crate::physics::physicsworld::PhysicsWorld;
 use crate::physics::Vector;
 use super::{super::utils::app::*, world::*};
 use super::super::render::*;
-use glium::glutin::{self, event::{self}, window::Fullscreen};
+use glium::winit::event::{ElementState, KeyEvent};
+use glium::winit::event::WindowEvent;
+use glium::winit::keyboard::{Key, KeyCode};
+use glium::winit::{self, event::{self}, window::Fullscreen};
 
 const G: f32 = (5) as f32; 
 
@@ -17,9 +20,9 @@ pub fn example() {
     let app = App::new();
     let mut last_frame = Instant::now();
 
-    app.screen.gl_window().window().set_cursor_visible(false);
-    app.screen.gl_window().window().set_fullscreen(Some(Fullscreen::Borderless(None)));
-    let mut _camera = Camera::new(&app.screen);
+    app.window.set_cursor_visible(false);
+    app.window.set_fullscreen(Some(Fullscreen::Borderless(None)));
+    let mut _camera = Camera::new(&app.display);
     _camera.update();
 
     // Create a diffuse light source with specified color and direction
@@ -37,14 +40,14 @@ pub fn example() {
     
     // Create Meshes for the spheres
     // Create AstralBody instances for the spheres
-    let mut body_1 = sphere_constructor.sphere_physics_object(Vector(0.0, 0., 0.), 210.0, &app.screen, sphere_shaders.clone());
+    let mut body_1 = sphere_constructor.sphere_physics_object(Vector(0.0, 0., 0.), 210.0, &app.display, sphere_shaders.clone());
     body_1.mesh.translate(0., 0., 0.);
     body_1.mesh.scale(2., 2., 2.);
 
-    let mut body_2 = sphere_constructor.sphere_physics_object(Vector(0., 0., 5.), 1.0, &app.screen, sphere_shaders.clone());
+    let mut body_2 = sphere_constructor.sphere_physics_object(Vector(0., 0., 5.), 1.0, &app.display, sphere_shaders.clone());
     body_2.mesh.translate(35., 0., 0.);
 
-    let mut body_3 = sphere_constructor.sphere_physics_object(Vector(0., 0., 5.), 1.0, &app.screen, sphere_shaders.clone());
+    let mut body_3 = sphere_constructor.sphere_physics_object(Vector(0., 0., 5.), 1.0, &app.display, sphere_shaders.clone());
     body_3.mesh.translate(60., 0., 0.);
 
 
@@ -60,7 +63,7 @@ pub fn example() {
         let delta_time = now.duration_since(last_frame).as_secs_f32();
         last_frame = now;
         // Get the current screen dimensions
-        let (width,height) = app.screen.get_framebuffer_dimensions();
+        let (width,height) = app.display.get_framebuffer_dimensions();
 
         let force_1_2 = body_1.universal_gravitation_force(&mut body_2, G);
         let force_1_3 = body_1.universal_gravitation_force(&mut body_3, G);
@@ -97,7 +100,7 @@ pub fn example() {
 // 
         // Render the world with current settings
         let mut w: PhysicsWorld = PhysicsWorld::new(vec![&body_1, &body_2, &body_3], _camera, light);        
-        w.render(&app.screen, &camera_mat, light, (0.0,0.0,0.0,0.1));
+        w.render(&app.display, &camera_mat, light, (0.0,0.0,0.0,0.1));
     
 //
 // EVENT HANDLER
@@ -108,11 +111,13 @@ pub fn example() {
                 // Handle device events (e.g., mouse, keyboard) and update camera view
                 event::Event::DeviceEvent { event, .. } => {
                     _camera.look_at(&event); // Handle Device Events
+                    _camera.update();
+
                 }
                 // Handle window events
                 event::Event::WindowEvent { event, .. } => {
                     match event {
-                        glutin::event::WindowEvent::Resized(size) => {
+                        WindowEvent::Resized(size) => {
                             // Update the projection matrix only
                             camera_mat.pers_mat = _camera.get_perspective(
                                 size.width as f32 / size.height as f32,
@@ -120,18 +125,17 @@ pub fn example() {
                                 0.1,
                                 100.0);
                         }
-                        glutin::event::WindowEvent::CloseRequested => {
+                        WindowEvent::CloseRequested => {
                             action = Action::Stop; // Stop the application
                         }
-                        glutin::event::WindowEvent::KeyboardInput { input, .. } => {
-                            _camera.input(&event); // Pass keyboard input to camera
-                            if input.state == glutin::event::ElementState::Pressed 
-                               && input.virtual_keycode == Some(glutin::event::VirtualKeyCode::Escape) {
+                        WindowEvent::KeyboardInput { event, .. } => {
+                            _camera.input(event); // Pass keyboard input to camera
+                            if event.state == ElementState::Pressed 
+                               && event.logical_key == glium::winit::keyboard::Key::Named(glium::winit::keyboard::NamedKey::Escape) {
                                 action = Action::Stop; // Stop on Escape key press
                             }
                         }
                         _ => {
-                            _camera.input(&event); // Handle other window events, if necessary
                         }
                     }
                 }
@@ -139,5 +143,5 @@ pub fn example() {
             }
         }
         action}
-    )
+    ).unwrap()
 }

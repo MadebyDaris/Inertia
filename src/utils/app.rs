@@ -1,7 +1,8 @@
 extern crate glium;
-use std::time::{Instant, Duration};
+use std::{num::NonZeroU32, time::{Duration, Instant}};
 
-use glium::glutin::{self, event::{Event, StartCause}, event_loop::{EventLoop, ControlFlow}};
+use glium::{glutin::{display::GetGlDisplay, self, prelude::{GlDisplay, NotCurrentGlContext}, surface::WindowSurface}, winit::{dpi::LogicalSize, error::EventLoopError, event::{Event, StartCause}, event_loop::{ControlFlow, EventLoop}, raw_window_handle::HasWindowHandle, window::{Window, WindowAttributes}}};
+use glutin_winit::DisplayBuilder;
 
 pub enum Action {
     Stop,
@@ -9,28 +10,69 @@ pub enum Action {
 }
 
 pub struct App {
-    pub screen: glium::Display,
+    pub display: glium::Display<WindowSurface>,
     pub event_loop: EventLoop<()>,
-    // pub window: glutin::window::Window,
+    pub window: Window
 }
 
 impl App {
     pub fn new() -> Self {
-        let el = glutin::event_loop::EventLoop::new();
-        let wb = glutin::window::WindowBuilder::new().with_resizable(true);
-        let cb = glutin::ContextBuilder::new().with_vsync(true);
-        let displ = glium::Display::new(wb, cb, &el).unwrap();
 
-        return App { screen : displ, event_loop: el}
+        let event_loop = EventLoop::new().expect("Eventloop failed to be created");
+
+    // ATTRIBUTES
+        let window_attributes = WindowAttributes::default()
+            .with_resizable(true)
+            .with_inner_size(LogicalSize::new(1024, 1024));
+        let template_builder = glutin::config::ConfigTemplateBuilder::new();
+        let display_builder = DisplayBuilder::new().with_window_attributes(Some(window_attributes));
+                
+
+    // WINDOW AND GL CONFIG
+        let (window, cfg) = display_builder.build(&event_loop, template_builder, |mut configs|{
+            // Just use the first configuration since we don't have any special preferences here
+            configs.next().unwrap()
+        }).unwrap();
+
+        let window = window.unwrap();
+
+        let window_handle = window.window_handle().expect("couldn't obtain window handle");
+        let context_attributes = glutin::context::ContextAttributesBuilder::new().build(Some(window_handle.into()));
+        let fallback_context_attributes = glutin::context::ContextAttributesBuilder::new()
+            .with_context_api(glutin::context::ContextApi::Gles(None))
+            .build(Some(window_handle.into()));
+
+        let not_current_gl_context = Some(unsafe {
+            cfg.display().create_context(&cfg, &context_attributes).unwrap_or_else(|_| {
+                cfg.display()
+                    .create_context(&cfg, &fallback_context_attributes)
+                    .expect("failed to create context")
+            })
+        });
+
+        let (width, height): (u32, u32) = window.inner_size().into();
+        let attrs = glutin::surface::SurfaceAttributesBuilder::<WindowSurface>::new().build(
+            window_handle.into(),
+            NonZeroU32::new(width).unwrap(),
+            NonZeroU32::new(height).unwrap(),
+        );
+
+        let surface = unsafe { cfg.display().create_window_surface(&cfg, &attrs).unwrap() };
+        let current_context = not_current_gl_context.unwrap().make_current(&surface).unwrap();
+        let display = glium::Display::from_context_surface(current_context, surface).unwrap();
+
+        return App { display, event_loop, window}
     }
 
-    pub fn update<F>(event_loop: EventLoop<()>, mut callback: F) ->! where F: 'static + FnMut(&Vec<Event<'_, ()>>) -> Action {
+    pub fn update<F>(event_loop: EventLoop<()>, mut callback: F) -> Result<(), EventLoopError>
+    where F: 'static + FnMut(&Vec<Event<()>>) -> Action {
             let mut buffer = Vec::new();
-            event_loop.run(move |event, _, controlflow| {
+            #[allow(deprecated)]
+            event_loop.run(move |event, window_target| {
                 let mut next_frame_time = std::time::Instant::now();
             
-                let run_callback = match event.to_static() {
-                    Some(Event::NewEvents(cause)) => {
+                let run_callback = match event {
+                    Event::NewEvents(cause) => {
                         match cause {
                             StartCause::ResumeTimeReached { .. } | StartCause::Init => {
                                 true
@@ -38,11 +80,11 @@ impl App {
                             _ => false
                         }
                     },
-                    Some(event) => {
+                    event => {
                         buffer.push(event);
                         false
                     }
-                    None => {
+                    _ => {
                         false 
                     }
                 };
@@ -59,9 +101,9 @@ impl App {
         
                 match action {
                     Action::Continue => {
-                        *controlflow = ControlFlow::WaitUntil(next_frame_time);
+                        window_target.set_control_flow(ControlFlow::WaitUntil(next_frame_time));
                     },
-                    Action::Stop => *controlflow = ControlFlow::Exit
+                    Action::Stop => window_target.exit()
                 }
             })
     }

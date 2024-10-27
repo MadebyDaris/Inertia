@@ -1,7 +1,7 @@
 use super::super::render::*;
 use crate::{physics::physicsobject::*, world::DiffuseLight};
 
-use glium::{index::PrimitiveType, uniform, IndexBuffer, Surface};
+use glium::{glutin::surface::WindowSurface, index::PrimitiveType, uniform, IndexBuffer, Surface};
 #[allow(dead_code)]
 pub struct PhysicsWorld<'a> {
     pub children: Vec<&'a AstralBody>,
@@ -21,7 +21,7 @@ impl<'a> PhysicsWorld<'a> {
     /// Render the world with its objects, camera, and lighting
     pub fn render(
         &mut self, 
-        screen: &glium::Display,  
+        screen: &glium::Display<WindowSurface>,  
         cam: &camera::CameraMat,
         u_light: DiffuseLight,
         background_color: (f32, f32, f32, f32)

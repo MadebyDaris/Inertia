@@ -2,7 +2,7 @@ pub mod mesh_object;
 pub mod sphere;
 pub use mesh_object::*;
 
-use glium::{index::PrimitiveType, uniform, Display, Frame, IndexBuffer, Surface, VertexBuffer};
+use glium::{glutin::surface::WindowSurface, index::PrimitiveType, uniform, Display, Frame, IndexBuffer, Surface, VertexBuffer};
 use wfobj::*;
 
 use crate::utils::matrix::TransformMatrix;
@@ -18,7 +18,7 @@ pub struct MeshObject {
 }
 impl MeshObject {
     // Create a new MeshObject, given data and uniforms
-    pub fn new(screen: &Display, object_data: &Vec<mesh_object::Vertex>, indices_raw:Vec<u32>, shader_data: ShaderData) -> MeshObject {
+    pub fn new(screen: &Display<WindowSurface>, object_data: &Vec<mesh_object::Vertex>, indices_raw:Vec<u32>, shader_data: ShaderData) -> MeshObject {
         let vert_buffer = VertexBuffer::new(screen, object_data).unwrap().into();
 
         let texture = Mesh::texture(screen, shader_data.tex_filename.as_str());
@@ -39,7 +39,7 @@ impl MeshObject {
         MeshObject { data, uniforms }
     }
     // Render the mesh using the provided uniforms
-    pub fn render(&self, screen: &Display, target: &mut Frame, view: [[f32; 4]; 4], perspective: [[f32; 4]; 4]) {
+    pub fn render(&self, screen: &Display<WindowSurface>, target: &mut Frame, view: [[f32; 4]; 4], perspective: [[f32; 4]; 4]) {
         let indices = IndexBuffer::new(screen, PrimitiveType::TriangleStripAdjacency, &self.uniforms.indices).unwrap();
         // Set uniforms for rendering
         let uniforms = uniform! {

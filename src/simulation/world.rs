@@ -2,7 +2,7 @@
 use super::super::render::*;
 use crate::mesh::MeshObject;
 
-use glium::{index::PrimitiveType, uniform, IndexBuffer, Surface};
+use glium::{glutin::surface::WindowSurface, index::PrimitiveType, uniform, IndexBuffer, Surface};
 #[derive(Clone, Copy)]
 pub struct DiffuseLight {
     pub u_light_direction: (f32, f32, f32),
@@ -11,7 +11,7 @@ pub struct DiffuseLight {
 
 #[allow(dead_code)]
 pub trait World {
-    fn render(&mut self, screen: &glium::Display, cam: &CameraMat, u_light: DiffuseLight, background_color: (f32,f32,f32,f32));
+    fn render(&mut self, screen: &glium::Display<WindowSurface>, cam: &CameraMat, u_light: DiffuseLight, background_color: (f32,f32,f32,f32));
 }
 
 #[allow(dead_code)]
@@ -35,7 +35,7 @@ impl World for StationnaryWorld<'_> {
     /// Render the world with its objects, camera, and lighting
     fn render(
         &mut self, 
-        screen: &glium::Display,  
+        screen: &glium::Display<WindowSurface>,  
         cam: &CameraMat,
         u_light: DiffuseLight,
         background_color: (f32, f32, f32, f32)

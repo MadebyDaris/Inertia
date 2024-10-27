@@ -1,4 +1,4 @@
-use glium::Display;
+use glium::{glutin::surface::WindowSurface, Display};
 
 use crate::utils::matrix::TransformMatrix;
 
@@ -62,7 +62,7 @@ impl SphereConstructor {
         return (MeshData { verts: vertices}, indices);
     }
 
-    pub fn sphere_object(&self, screen: &Display, shader_data: ShaderData) -> MeshObject{
+    pub fn sphere_object(&self, screen: &Display<WindowSurface>, shader_data: ShaderData) -> MeshObject{
         let (data, indices) = self.new();
         return MeshObject {
             data: Mesh::new(screen, &data.verts, shader_data),

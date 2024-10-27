@@ -1,4 +1,4 @@
-use glium::{glutin::{self, event::DeviceEvent}, Display};
+use glium::{glutin::surface::WindowSurface, winit::{event::{DeviceEvent, ElementState, KeyEvent, WindowEvent}, keyboard::{self, Key}}, Display};
 use std::f32::consts::PI as pi;
 
 use crate::utils::*;
@@ -31,13 +31,13 @@ pub struct Camera {
     first_mouse: bool
 }
 impl Camera {
-    pub fn new(screen: &Display) -> Camera {
+    pub fn new(screen: &Display<WindowSurface>) -> Camera {
 
         let m_position = (screen.get_framebuffer_dimensions().0 as f32 /2., screen.get_framebuffer_dimensions().1 as f32 /2.);
         
         Camera {
             aspect_ratio: 1024.0 / 768.0,
-            translation_sensitivity: 0.75,
+            translation_sensitivity: 0.25,
             rotation_sensitivity: 0.005,
 
             position: (0.1, 0.1, 1.1),
@@ -95,7 +95,7 @@ impl Camera {
         ]
     }
     
-    pub fn look_at(&mut self, event: &glutin::event::DeviceEvent) {
+    pub fn look_at(&mut self, event: &DeviceEvent) {
         let _mouse_callback = match *event {
             DeviceEvent::MouseMotion { delta } => {
                 if self.first_mouse
@@ -170,23 +170,16 @@ impl Camera {
         }
     }
 
-    pub fn input(&mut self, event: &glutin::event::WindowEvent<'_>) {
-        let input = match *event {
-            glutin::event::WindowEvent::KeyboardInput { input, .. } => input,
-            _ => return,
-        };
-        let pressed = input.state == glutin::event::ElementState::Pressed;
-        let key = match input.virtual_keycode {
-            Some(key) => key,
-            None => return,
-        };
+    pub fn input(&mut self, event: &KeyEvent) {
+        let pressed = event.state == ElementState::Pressed;
+        let key = event.physical_key;
         match key {
-            glutin::event::VirtualKeyCode::Up => self.moving_up = pressed,
-            glutin::event::VirtualKeyCode::Down => self.moving_down = pressed,
-            glutin::event::VirtualKeyCode::Q => self.moving_left = pressed,
-            glutin::event::VirtualKeyCode::D => self.moving_right = pressed,
-            glutin::event::VirtualKeyCode::Z => self.moving_forward = pressed,
-            glutin::event::VirtualKeyCode::S => self.moving_backward = pressed,
+            glium::winit::keyboard::PhysicalKey::Code(keyboard::KeyCode::ArrowUp) => self.moving_up = pressed,
+            glium::winit::keyboard::PhysicalKey::Code(keyboard::KeyCode::ArrowDown) => self.moving_down = pressed,
+            glium::winit::keyboard::PhysicalKey::Code(keyboard::KeyCode::KeyA) => self.moving_left = pressed,
+            glium::winit::keyboard::PhysicalKey::Code(keyboard::KeyCode::KeyD) => self.moving_right = pressed,
+            glium::winit::keyboard::PhysicalKey::Code(keyboard::KeyCode::KeyW) => self.moving_forward = pressed,
+            glium::winit::keyboard::PhysicalKey::Code(keyboard::KeyCode::KeyS) => self.moving_backward = pressed,
             _ => (),
     
         };

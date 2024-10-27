@@ -1,4 +1,4 @@
-use glium::Display;
+use glium::{glutin::surface::WindowSurface, Display};
 use sphere::SphereConstructor;
 
 use crate::{mesh::*, utils::matrix::TransformMatrix};
@@ -42,7 +42,7 @@ impl AstralBody {
     }
 }
 impl SphereConstructor {
-    pub fn sphere_physics_object(&self, velocity: Vector, mass: f32, screen: &Display, shader_data: ShaderData) -> AstralBody{
+    pub fn sphere_physics_object(&self, velocity: Vector, mass: f32, screen: &Display<WindowSurface>, shader_data: ShaderData) -> AstralBody{
         let (data, indices) = self.new();
         let mesh = MeshObject {
             data: Mesh::new(screen, &data.verts, shader_data),
