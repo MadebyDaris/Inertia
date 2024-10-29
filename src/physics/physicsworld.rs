@@ -1,7 +1,10 @@
 use super::super::render::*;
-use crate::{physics::physicsobject::*, world::DiffuseLight};
+use crate::{physics::physicsobject::*, utils::vector::Vector, world::DiffuseLight};
 
 use glium::{glutin::surface::WindowSurface, index::PrimitiveType, uniform, Display, Frame, IndexBuffer, Surface};
+
+const G: f32 = (5) as f32;
+
 #[allow(dead_code)]
 pub struct PhysicsWorld<'a> {
     pub children: Vec<&'a AstralBody>,
@@ -58,5 +61,5 @@ impl<'a> PhysicsWorld<'a> {
             // Draw the mesh object using the provided vertex buffer, indices, shaders, and uniforms
             target.draw(&mesh_object.vert_buffer, &index_buffer, &mesh_object.program, &uni, &params).unwrap();
         }
-    }
+    }       
 }

@@ -1,29 +1,28 @@
 use std::f32::consts::PI;
 use std::time::Instant;
+
+use crate::{calculate_g_forces, update_astral_body_physics};
+// Import necessary modules and structs
 use crate::mesh::sphere::SphereConstructor;
 use crate::mesh::ShaderData;
-use crate::physics::physicsworld::PhysicsWorld;
+use crate::physics::physicsworld::*;
 use crate::utils::eventhandler::handle_events;
-use crate::utils::ui::{MyUI, SimulationInfoWidget, Widget};
-use crate::utils;
-use utils::vector::Vector;
-use super::{super::utils::app::*, world::*};
+use crate::utils::ui::{AstralBodyInfoWidget, MyUI, SimulationInfoWidget, Widget};
+use crate::utils::{app::*, vector::Vector};
+use super::world::*;
 use super::super::render::*;
-use glium::winit::event::ElementState;
-use glium::winit::event::WindowEvent;
-use glium::winit::event::{self};
-
-const G: f32 = (5) as f32; 
 
 #[allow(unused_must_use)]
 pub fn example() {
     // Initialize the basic app and camera settings
-    let (display, event_loop, window) = Ogl::new();
+    let (
+        display, 
+        event_loop, 
+        window) = Ogl::new();
     let event_loop = event_loop;
+    // &window.set_cursor_visible(false);
 
     let mut last_frame = Instant::now();
-
-    // &window.set_cursor_visible(false);
 
     let mut _camera = Camera::new(&display);
     _camera.update();
@@ -41,9 +40,15 @@ pub fn example() {
         fragment_shader: "data/glsl/fragment_shader.glsl".to_string(),
     };
     
+    let earth_shader = ShaderData {
+        tex_filename: "./data/tex/earth.jpg".to_string(),
+        vertex_shader: "data/glsl/vertex_shader.glsl".to_string(),
+        fragment_shader: "data/glsl/fragment_shader.glsl".to_string(),
+    };
+
     // Create Meshes for the spheres
     // Create AstralBody instances for the spheres
-    let mut body_1 = sphere_constructor.sphere_physics_object(Vector(0.0, 0., 0.), 210.0, &display, sphere_shaders.clone());
+    let mut body_1 = sphere_constructor.sphere_physics_object(Vector(0.0, 0., 0.), 210.0, &display, earth_shader.clone());
     body_1.mesh.translate(0., 0., 0.);
     body_1.mesh.scale(2., 2., 2.);
 
@@ -74,24 +79,17 @@ pub fn example() {
         // Get the current screen dimensions
         let (width,height) = &display.get_framebuffer_dimensions();
 
-        let force_1_2 = body_1.universal_gravitation_force(&mut body_2, G);
-        let force_1_3 = body_1.universal_gravitation_force(&mut body_3, G);
-        let force_2_1 = body_2.universal_gravitation_force(&mut body_1, G); // Equal and opposite
-        let force_2_3 = body_2.universal_gravitation_force(&mut body_3, G);
-        let force_3_1 = body_3.universal_gravitation_force(&mut body_1, G); // Equal and opposite
-        let force_3_2 = body_3.universal_gravitation_force(&mut body_2, G);
-
-            // Update velocities based on calculated forces
-        body_1.acc = (force_1_2 + force_1_3) / body_1.mass;
-        body_2.acc = (force_2_1 + force_2_3) / body_2.mass;
-        body_3.acc = (force_3_1 + force_3_2) / body_3.mass;
-
-
         // Update geometries for each body
-        for body in [&mut body_1, &mut body_2, &mut body_3] {
-            body.update_velocity(delta_time);
-            body.update_geometry(delta_time);
-        }
+        let mut bodies = [&body_1, &body_2, &body_3].clone();
+        calculate_g_forces!(body_1, &body_2, &body_3);
+        update_astral_body_physics!(body_1, delta_time);
+
+        calculate_g_forces!(body_2, &body_1, &body_3);
+        update_astral_body_physics!(body_2, delta_time);
+
+        calculate_g_forces!(body_3, &body_1, &body_2);
+        update_astral_body_physics!(body_3, delta_time);
+
 
         // Set up the camera matrices for view and perspective, with a 60-degree field of view (PI / 3.0)
         let mut camera_mat: CameraMat = CameraMat{ 
@@ -107,8 +105,8 @@ pub fn example() {
 // 
 // UI widgets
 // 
-        let astral_body_info: utils::ui::AstralBodyInfoWidget = body_1.get_widget("Planet 1".to_owned());
-        let astral_body_info2: utils::ui::AstralBodyInfoWidget = body_2.get_widget("Smaller moon".to_owned());
+        let astral_body_info: AstralBodyInfoWidget = body_1.get_widget("Planet 1".to_owned());
+        let astral_body_info2: AstralBodyInfoWidget = body_2.get_widget("Smaller moon".to_owned());
 
 
         let simulation_info = SimulationInfoWidget {
@@ -127,10 +125,6 @@ pub fn example() {
             &astral_body_info2.show(egui_context);
             &simulation_info.show(egui_context);
         });
-
-// 
-// EVENT HANDLER
-// 
 
         frame.finish().unwrap();
         handle_events(events, &mut _camera, &mut camera_mat)
