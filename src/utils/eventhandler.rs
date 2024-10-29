@@ -1,0 +1,46 @@
+use glium::winit::event::{self, ElementState, WindowEvent};
+
+use crate::render::{Camera, CameraMat};
+
+use super::app::Action;
+
+pub fn handle_events(events: &Vec<event::Event<()>>, _camera: &mut Camera,camera_mat: &mut CameraMat) -> Action {
+    let mut action = Action::Continue;
+    for event in events {
+        match event {
+            // Handle device events (e.g., mouse, keyboard) and update camera view
+            event::Event::DeviceEvent { event, .. } => {
+                _camera.look_at(&event); // Handle Device Events
+                _camera.update();
+
+            }
+            // Handle window events
+            event::Event::WindowEvent { event, .. } => {
+                match event {
+                    WindowEvent::Resized(size) => {
+                        // Update the projection matrix only
+                        camera_mat.pers_mat = _camera.get_perspective(
+                            size.width as f32 / size.height as f32,
+                            45.0,
+                            0.1,
+                            100.0);
+                    }
+                    WindowEvent::CloseRequested => {
+                        action = Action::Stop; // Stop the application
+                    }
+                    WindowEvent::KeyboardInput { event, .. } => {
+                        _camera.input(event); // Pass keyboard input to camera
+                        if event.state == ElementState::Pressed 
+                           && event.logical_key == glium::winit::keyboard::Key::Named(glium::winit::keyboard::NamedKey::Escape) {
+                            action = Action::Stop; // Stop on Escape key press
+                        }
+                    }
+                    _ => {
+                    }
+                }
+            }
+            _ => (),
+        }
+    }
+    action
+}

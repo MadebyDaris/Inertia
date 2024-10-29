@@ -62,8 +62,8 @@ impl World for StationnaryWorld<'_> {
 
             let uni = uniform!{
                 model: mesh_uniform.transform.matrix,  // Model matrix for object transformation
-                view: cam.view_mat,            // Camera's view matrix
-                perspective: cam.pers_mat,               // Camera's perspective matrix
+                view: cam.view_mat.matrix,            // Camera's view matrix
+                perspective: cam.pers_mat.matrix,               // Camera's perspective matrix
                 u_light_direction: u_light.u_light_direction,                     // Light source position/intensity
                 u_light_color: u_light.u_light_color,
                 tex: &mesh_object.texture             // Texture to apply to the mesh

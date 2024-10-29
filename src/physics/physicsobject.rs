@@ -1,7 +1,7 @@
 use glium::{glutin::surface::WindowSurface, Display};
 use sphere::SphereConstructor;
 
-use crate::{mesh::*, utils::matrix::TransformMatrix};
+use crate::{mesh::*, utils::{matrix::TransformMatrix, ui::{AstralBodyInfoWidget, Widget}}};
 
 use super::{position_euclidean, Vector};
 
@@ -40,6 +40,9 @@ impl AstralBody {
         }
         return ((direction.normalized() * mu) /distance_squared) * 1.
     }
+    pub fn position(&self) -> Vector {
+        return position_euclidean(&self.mesh)
+    }
 }
 impl SphereConstructor {
     pub fn sphere_physics_object(&self, velocity: Vector, mass: f32, screen: &Display<WindowSurface>, shader_data: ShaderData) -> AstralBody{
@@ -48,5 +51,25 @@ impl SphereConstructor {
             data: Mesh::new(screen, &data.verts, shader_data),
             uniforms: MeshUniforms { transform: TransformMatrix::identity(), indices },};
         return AstralBody { mesh, velocity, acc: Vector(0.,0.,0.,), mass, r: self.radius};
+    }
+}
+
+
+// 
+// SOME FUNCTIONS FOR THE UI
+// 
+impl AstralBody {
+    pub fn get_widget(&self, name: String)-> AstralBodyInfoWidget {
+        return AstralBodyInfoWidget {name, mass: self.mass, position: self.position_str(), velocity: self.velocity_str() }
+    }
+    
+    // Method to get a formatted string of position
+    pub fn position_str(&self) -> String {
+        format!("({}, {}, {})", self.position().0, self.position().1, self.position().2)
+    }
+
+    // Method to get a formatted string of velocity
+    pub fn velocity_str(&self) -> String {
+        format!("({}, {}, {})", self.velocity.0, self.velocity.1, self.velocity.2)
     }
 }

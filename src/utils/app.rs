@@ -1,32 +1,30 @@
 extern crate glium;
 use std::{num::NonZeroU32, time::{Duration, Instant}};
-
 use glium::{glutin::{display::GetGlDisplay, self, prelude::{GlDisplay, NotCurrentGlContext}, surface::WindowSurface}, winit::{dpi::LogicalSize, error::EventLoopError, event::{Event, StartCause}, event_loop::{ControlFlow, EventLoop}, raw_window_handle::HasWindowHandle, window::{Window, WindowAttributes}}};
 use glutin_winit::DisplayBuilder;
 
+#[derive(Clone,Copy)]
 pub enum Action {
     Stop,
     Continue,
 }
 
-pub struct App {
-    pub display: glium::Display<WindowSurface>,
-    pub event_loop: EventLoop<()>,
-    pub window: Window
-}
+pub struct Ogl {}
 
-impl App {
-    pub fn new() -> Self {
+impl Ogl {
+    pub fn new() -> (
+        glium::Display<WindowSurface>,
+        EventLoop<()>,
+        Window) {
 
         let event_loop = EventLoop::new().expect("Eventloop failed to be created");
 
     // ATTRIBUTES
         let window_attributes = WindowAttributes::default()
             .with_resizable(true)
-            .with_inner_size(LogicalSize::new(1024, 1024));
+            .with_inner_size(LogicalSize::new(1024, 700));
         let template_builder = glutin::config::ConfigTemplateBuilder::new();
         let display_builder = DisplayBuilder::new().with_window_attributes(Some(window_attributes));
-                
 
     // WINDOW AND GL CONFIG
         let (window, cfg) = display_builder.build(&event_loop, template_builder, |mut configs|{
@@ -61,14 +59,14 @@ impl App {
         let current_context = not_current_gl_context.unwrap().make_current(&surface).unwrap();
         let display = glium::Display::from_context_surface(current_context, surface).unwrap();
 
-        return App { display, event_loop, window}
+        return ( display, event_loop, window)
     }
 
     pub fn update<F>(event_loop: EventLoop<()>, mut callback: F) -> Result<(), EventLoopError>
     where F: 'static + FnMut(&Vec<Event<()>>) -> Action {
             let mut buffer = Vec::new();
             #[allow(deprecated)]
-            event_loop.run(move |event, window_target| {
+            event_loop.run(move |event: Event<()>, window_target| {
                 let mut next_frame_time = std::time::Instant::now();
             
                 let run_callback = match event {

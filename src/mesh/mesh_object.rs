@@ -34,6 +34,7 @@ pub struct MeshUniforms {
     pub transform: TransformMatrix,
     pub indices: Vec<u32>
 }
+
 pub struct Mesh { 
     pub vert_buffer: VertexBufferAny,
     pub program: Program,

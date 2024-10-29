@@ -13,6 +13,10 @@ wfobj = { git = "https://github.com/nidirene/wfobj.git" }
 image = "*"
 noise = "*"
 rand = "*"
-egui = "*"
-egui_glium = "*"
+egui = { version = "0.29", default-features = false, features = [
+  "bytemuck",
+  "default_fonts"
+] }
+egui-winit = { version = "0.29", default-features = false }
+egui_glium = "0.29.0"
 gltf = { version = "1.0", feature = "utils"}
