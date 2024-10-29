@@ -58,11 +58,17 @@ impl MyUI {
 // Body info
 #[derive(Clone)]
 pub struct AstralBodyInfoWidget {
-    pub mass: f32,
-    pub position: String,
-    pub velocity: String,
     pub name: String,
+    pub mass: f32,                    // kg
+    pub position: String,             // m
+    pub velocity: String,             // m/s
+    pub angular_velocity: String,     // rad/s
+    pub acc: String,                  // m/s^2
+    pub moment_of_inertia: f32,       // kg·m^2
+    pub euler_angles: String,         // deg (or rad)
+    pub radius: f32,                  // m
 }
+
 
 impl AstralBodyInfoWidget {
     pub fn new(astral_body: &AstralBody, name: String) -> Self {
@@ -71,6 +77,26 @@ impl AstralBodyInfoWidget {
             mass: astral_body.mass,
             position: astral_body.position_str(),
             velocity: astral_body.velocity_str(),
+            angular_velocity: format!(
+                "({}, {}, {}) rad/s",
+                astral_body.angular_velocity.0,
+                astral_body.angular_velocity.1,
+                astral_body.angular_velocity.2
+            ),
+            acc: format!(
+                "({}, {}, {}) m/s²",
+                astral_body.acceleration.0,
+                astral_body.acceleration.1,
+                astral_body.acceleration.2
+            ),
+            moment_of_inertia: astral_body.moment_of_inertia,
+            euler_angles: format!(
+                "Pitch: {:.2}°, Yaw: {:.2}°, Roll: {:.2}°",
+                astral_body.euler_angles.pitch.to_degrees(),
+                astral_body.euler_angles.yaw.to_degrees(),
+                astral_body.euler_angles.roll.to_degrees()
+            ),
+            radius: astral_body.r,
         }
     }
 }
@@ -82,10 +108,14 @@ impl Widget for AstralBodyInfoWidget {
             ui.label(format!("Mass: {:.2} kg", self.mass));
             ui.label(format!("Position: {}", self.position));
             ui.label(format!("Velocity: {}", self.velocity));
+            ui.label(format!("Angular Velocity: {}", self.angular_velocity));
+            ui.label(format!("Acceleration: {}", self.acc));
+            ui.label(format!("Moment of Inertia: {:.2} kg·m²", self.moment_of_inertia));
+            ui.label(format!("Euler Angles: {}", self.euler_angles));
+            ui.label(format!("Radius: {:.2} m", self.radius));
         });
     }
 }
-
 // Simulation info
 #[derive(Clone)]
 pub struct SimulationInfoWidget {

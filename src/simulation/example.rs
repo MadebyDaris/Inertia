@@ -57,7 +57,7 @@ pub fn example() {
 
     let mut body_3 = sphere_constructor.sphere_physics_object(Vector(0., 0., 5.), 1.0, &display, sphere_shaders.clone());
     body_3.mesh.translate(60., 0., 0.);
-
+    body_3.mesh.rotate(30., 20., 0.);
     // Interface creation
     let mut ui_object = MyUI::new(&display, &window, &event_loop);
 
@@ -80,7 +80,9 @@ pub fn example() {
         let (width,height) = &display.get_framebuffer_dimensions();
 
         // Update geometries for each body
-        let mut bodies = [&body_1, &body_2, &body_3].clone();
+        let damping = body_2.damping_force(0.01).clone(); // Get the damping force object
+        body_2.add_force(damping); // Add it to the body's forces
+
         calculate_g_forces!(body_1, &body_2, &body_3);
         update_astral_body_physics!(body_1, delta_time);
 
@@ -89,7 +91,6 @@ pub fn example() {
 
         calculate_g_forces!(body_3, &body_1, &body_2);
         update_astral_body_physics!(body_3, delta_time);
-
 
         // Set up the camera matrices for view and perspective, with a 60-degree field of view (PI / 3.0)
         let mut camera_mat: CameraMat = CameraMat{ 
@@ -101,7 +102,6 @@ pub fn example() {
                     0.1) 
         };
         _camera.update();
-
 // 
 // UI widgets
 // 
@@ -112,11 +112,9 @@ pub fn example() {
         let simulation_info = SimulationInfoWidget {
             elapsed_time: delta_time,
         };
-
 // 
 // Render the world with current settings
 // 
-
         let mut w: PhysicsWorld = PhysicsWorld::new(vec![&body_1, &body_2, &body_3], _camera, light);        
         w.render(&display, &mut frame, &camera_mat, light, (0.0,0.0,0.0,0.1));
 

@@ -63,7 +63,7 @@ impl MeshObject {
         self.uniforms.transform = self.uniforms.transform.translate(kx, ky, kz);
     }
     pub fn rotate(&mut self, kx:f32, ky:f32 ,kz:f32) {
-        self.uniforms.transform = self.uniforms.transform.rotate((kx, ky, kz));
+        self.uniforms.transform.rotate((kx, ky, kz));
     }
     pub fn scale(&mut self, kx:f32, ky:f32 ,kz:f32) {
         self.uniforms.transform = self.uniforms.transform.scale(kx, ky, kz);

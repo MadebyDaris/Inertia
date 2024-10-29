@@ -16,9 +16,9 @@ impl TransformMatrix {
         let m1 = m_.matrix;
         let m2 = m.matrix;
         let mut f = [[0.0; 4]; 4];
-        for i in 0..3 {
-            for j in 0..3 {
-                for k in 0..3 {
+        for i in 0..4 {
+            for j in 0..4 {
+                for k in 0..4 {
                     f[i][j] += m1[i][k] * m2[k][j]
                 }
             }
@@ -40,31 +40,36 @@ impl TransformMatrix {
         self
     }
 
-    pub fn rotate(&mut self, rot_param: (f32, f32, f32)) ->  TransformMatrix {
+
+    // Instead of combining all rotations at once, apply 
+    // each rotation incrementally to the transformation matrix. 
+    // This approach can sometimes alleviate the order-dependent problems in Euler angle-based rotations:
+    pub fn rotate(&mut self, rot_param: (f32, f32, f32)) {
         let mut x_rot = TransformMatrix::identity().matrix;
-        x_rot[0][0] = 1.;
-        x_rot[1][1] = rot_param.0.cos();
-        x_rot[1][2] = -(rot_param.0.sin());
-        x_rot[2][1] = rot_param.0.sin();
-        x_rot[2][2] = rot_param.0.cos();
+        x_rot = [
+        [1.0, 0.0, 0.0, 0.0],
+        [0.0, rot_param.0.cos(), -rot_param.0.sin(), 0.0],
+        [0.0, rot_param.0.sin(), rot_param.0.cos(), 0.0],
+        [0.0, 0.0, 0.0, 1.0],
+        ];
+        self.matrix = TransformMatrix::mat_x_mat(*self, TransformMatrix{ matrix: x_rot}).matrix;
 
         let mut y_rot = TransformMatrix::identity().matrix;
-        y_rot[0][0] = rot_param.1.cos();
-        y_rot[0][2] = -(rot_param.1.sin());
-        y_rot[1][1] = 1.;
-        y_rot[2][0] = rot_param.1.sin();
-        y_rot[2][2] = rot_param.1.cos();
+        let y_rot = [
+            [rot_param.1.cos(), 0.0, rot_param.1.sin(), 0.0],
+            [0.0,               1.0, 0.0,               0.0],
+            [-rot_param.1.sin(),0.0, rot_param.1.cos(), 0.0],
+            [0.0,               0.0, 0.0,               1.0],
+        ];
+        self.matrix = TransformMatrix::mat_x_mat(*self, TransformMatrix{ matrix: y_rot}).matrix;
 
         let mut z_rot = TransformMatrix::identity().matrix;
-        z_rot[0][0] = rot_param.2.cos();
-        z_rot[0][1] = -(rot_param.2.sin());
-        z_rot[1][0] = rot_param.2.sin();
-        z_rot[1][1] = rot_param.2.cos();
-        z_rot[2][2] = 1.;
-
-        let x_y_rot = TransformMatrix::mat_x_mat(TransformMatrix{matrix: x_rot}, TransformMatrix{ matrix: y_rot });
-        let combined = TransformMatrix::mat_x_mat(TransformMatrix { matrix: x_y_rot.matrix }, TransformMatrix { matrix:z_rot } );
-        let result = TransformMatrix::mat_x_mat( *self, combined );
-        return result
+        let z_rot = [
+            [rot_param.2.cos(), -rot_param.2.sin(), 0.0, 0.0],
+            [rot_param.2.sin(), rot_param.2.cos(), 0.0, 0.0],
+            [0.0, 0.0, 1.0, 0.0],
+            [0.0, 0.0, 0.0, 1.0],
+        ];
+        self.matrix = TransformMatrix::mat_x_mat(*self, TransformMatrix{ matrix: z_rot}).matrix;
     }
 }

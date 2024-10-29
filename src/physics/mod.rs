@@ -10,10 +10,17 @@ pub fn position_euclidean(body: &MeshObject) -> Vector {
     return Vector(matrix[3][0],matrix[3][1],matrix[3][2]);
 }
 
+#[derive(Clone, Copy)]
 pub struct Force {
     pub direction: Vector,
     pub magnitude: f32
 }
+pub struct EulerAngles {
+    pub pitch: f32, // Rotation around the X-axis
+    pub yaw: f32,   // Rotation around the Y-axis
+    pub roll: f32,  // Rotation around the Z-axis
+}
+
 impl Default for Force {
     fn default() -> Self {
         Self { direction: Vector(0.,0.,0.), magnitude: 0. }

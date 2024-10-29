@@ -1,11 +1,12 @@
 
+## Angular Physics
 In physics, **torque** and **moment of inertia** are fundamental concepts in rotational dynamics, similar to how force and mass are essential in linear dynamics. Here’s a breakdown of each, how they relate to rotational motion, and how to compute them, especially for a sphere.
 
 ---
 
 ### 1. **Torque**
 
-**Torque** (\(\tau\)) is a measure of the rotational force applied to an object, causing it to rotate about an axis. It’s essentially the rotational equivalent of a linear force.
+**Torque** $\tau$ is a measure of the rotational force applied to an object, causing it to rotate about an axis. It’s essentially the rotational equivalent of a linear force.
 
 - **Formula**: 
   $$
@@ -98,3 +99,12 @@ fn update_angular_acceleration(torque: Vector3<f32>, moment_of_inertia: f32) -> 
     torque / moment_of_inertia  // Divide by moment of inertia to get angular acceleration
 }
 ```
+
+
+## Some other forces to consider
+#### Conceptual Considerations
+1. Realism: In real space, there is no friction, so a damping effect simulates the loss of energy due to hypothetical interactions (like radiation pressure, very weak gravitational interactions, or even tiny impacts from micro-particles). If your simulation is purely theoretical or for a specific educational purpose, it might make sense to include it as a way to illustrate energy dissipation.
+
+2. Impact on Simulation: The value of the damping coefficient $(c)$ will dictate how quickly the velocity decreases. A very small value will make the effect negligible over short periods, while a larger value will cause rapid deceleration. Adjust it according to how you want your bodies to behave in the simulation.
+
+Space Scenarios: Consider whether you're simulating a system with realistic conditions. In scenarios where gravitational interactions dominate (like planetary systems), adding a friction-like damping effect may not be necessary. It could be useful, however, in specific contexts, such as simulating spacecraft maneuvers or when studying orbital decay due to drag in very low orbits (though this is not the case in deep space).
