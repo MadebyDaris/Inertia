@@ -1,11 +1,11 @@
 use std::f32::consts::PI;
-use std::time::Instant;
 
+use crate::utils::timeutil::SimulationTime;
 use crate::{calculate_g_forces, update_astral_body_physics};
 // Import necessary modules and structs
 use crate::mesh::sphere::SphereConstructor;
 use crate::mesh::ShaderData;
-use crate::physics::physicsworld::*;
+use crate::physics::{physicsobject, physicsworld::*};
 use crate::utils::eventhandler::handle_events;
 use crate::utils::ui::{AstralBodyInfoWidget, MyUI, SimulationInfoWidget, Widget};
 use crate::utils::{app::*, vector::Vector};
@@ -22,7 +22,8 @@ pub fn example() {
     let event_loop = event_loop;
     // &window.set_cursor_visible(false);
 
-    let mut last_frame = Instant::now();
+    let mut Time = SimulationTime::new(0.016);
+    Time.set_time_acceleration(1.01);
 
     let mut _camera = Camera::new(&display);
     _camera.update();
@@ -41,7 +42,7 @@ pub fn example() {
     };
     
     let earth_shader = ShaderData {
-        tex_filename: "./data/tex/earth.jpg".to_string(),
+        tex_filename: "./data/tex/mars.jpg".to_string(),
         vertex_shader: "data/glsl/vertex_shader.glsl".to_string(),
         fragment_shader: "data/glsl/fragment_shader.glsl".to_string(),
     };
@@ -73,9 +74,6 @@ pub fn example() {
 // SIMULTAION LOGIC HERE
 //
 
-        let now = Instant::now();
-        let delta_time = now.duration_since(last_frame).as_secs_f32();
-        last_frame = now;
         // Get the current screen dimensions
         let (width,height) = &display.get_framebuffer_dimensions();
 
@@ -83,14 +81,24 @@ pub fn example() {
         let damping = body_2.damping_force(0.01).clone(); // Get the damping force object
         body_2.add_force(damping); // Add it to the body's forces
 
+
         calculate_g_forces!(body_1, &body_2, &body_3);
-        update_astral_body_physics!(body_1, delta_time);
+        update_astral_body_physics!(body_1, Time.accelerated_delta_time);
+        if physicsobject::AstralBody::detect_collision(&body_1, &body_2) {
+            physicsobject::AstralBody::handle_collision(&mut body_1, &mut body_2);
+        }
 
         calculate_g_forces!(body_2, &body_1, &body_3);
-        update_astral_body_physics!(body_2, delta_time);
+        update_astral_body_physics!(body_2, Time.accelerated_delta_time);
+        if physicsobject::AstralBody::detect_collision(&body_1, &body_3) {
+            physicsobject::AstralBody::handle_collision(&mut body_1, &mut body_3);
+        }
 
         calculate_g_forces!(body_3, &body_1, &body_2);
-        update_astral_body_physics!(body_3, delta_time);
+        update_astral_body_physics!(body_3, Time.accelerated_delta_time);
+        if physicsobject::AstralBody::detect_collision(&body_2, &body_3) {
+            physicsobject::AstralBody::handle_collision(&mut body_2, &mut body_3);
+        }
 
         // Set up the camera matrices for view and perspective, with a 60-degree field of view (PI / 3.0)
         let mut camera_mat: CameraMat = CameraMat{ 
@@ -102,6 +110,8 @@ pub fn example() {
                     0.1) 
         };
         _camera.update();
+        Time.update(1.002);
+
 // 
 // UI widgets
 // 
@@ -110,7 +120,7 @@ pub fn example() {
 
 
         let simulation_info = SimulationInfoWidget {
-            elapsed_time: delta_time,
+            elapsed_time: Time.simulation_time,
         };
 // 
 // Render the world with current settings
@@ -125,7 +135,7 @@ pub fn example() {
         });
 
         frame.finish().unwrap();
-        handle_events(events, &mut _camera, &mut camera_mat)
+        handle_events(events, &mut _camera, &mut camera_mat, &mut Time)
         }
     ).unwrap()
 }

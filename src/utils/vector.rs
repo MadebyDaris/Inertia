@@ -49,7 +49,6 @@ impl PartialEq for Vector {
     }
 }
 impl Vector {
-    // Normalize the vector
     pub fn normalized(&self) -> Vector {
         let magnitude = self.magnitude();
 
@@ -80,7 +79,9 @@ impl Vector {
             self.1 * sin_theta + self.2 * cos_theta,
         )
     }
-
+    pub fn dot(self, other: Vector) -> f32 {
+        self.0 * other.0 + self.1 * other.1 + self.2 * other.2
+    }
     pub fn rotate_y(&self, angle: f32) -> Vector {
         let cos_theta = angle.cos();
         let sin_theta = angle.sin();

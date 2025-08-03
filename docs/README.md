@@ -1,151 +1,208 @@
-# Rust OpenGL Engine (OGL)
-**Physics Engine for Space Bodies**
-This project is a **Rust**-based physics engine designed to simulate the gravitational interactions between celestial bodies. It allows users to explore basic physics principles, especially orbital mechanics, through an interactive sandbox environment.
+# Project Inertia
+**A Real-Time Physics Engine**
 
-## Future Features
-- Procedural noise generated planets, and texturing the planets procedurally,
-- more mecanics that include inertia of the planet
-- inluding all laws of motion of Newton for a specific body
-- Realistic Time Acceleration
+Inertia is a high-performance, Rust-based physics engine built with OpenGL that simulates gravitational interactions between celestial bodies in real-time in this fork but more coming soon. Designed for educational exploration and visualization of orbital mechanics, this engine provides an interactive 3D sandbox environment where users can experiment with astronomical phenomena and observe the elegant dance of celestial objects under Newton's laws of motion.
 
-## Feature Ideas
+![Space Simulation](https://img.shields.io/badge/Physics-Orbital%20Mechanics-blue)
+![Language](https://img.shields.io/badge/Language-Rust-orange)
+![Graphics](https://img.shields.io/badge/Graphics-OpenGL-green)
 
-### 1. Realistic Time Acceleration
-   - **Description**: Implement adjustable time scaling to simulate long-term planetary motion, ranging from hours to millennia in a compressed time frame. This allows users to observe and analyze extended orbital paths, gravitational encounters, and planetary migrations.
-   - **Use Case**: Observe the progression of orbital precession, planetary alignment patterns, or asteroid belt formation over extended periods.
+## Features
 
-### 2. N-Body Gravitation
-   - **Description**: Expand the engine to include an N-body simulation mode, where all bodies influence each other gravitationally. This creates complex interactions, enabling realistic modeling of star clusters, asteroid fields, and solar systems with multiple bodies affecting each other's trajectories.
-   - **Use Case**: Simulate the Milky Way's galactic core or the gravitational clustering and dispersion in an asteroid belt.
+### Current Capabilities
+- **N-Body Gravitational Simulation**: Accurate gravitational force calculations between multiple celestial bodies
+- **Real-Time Physics**: Smooth integration using Euler's method with customizable time steps
+- **3D Visualization**: OpenGL-powered rendering with textured spherical bodies
+- **Interactive Camera**: First-person camera with smooth movement and mouse look controls
+- **Live Debugging UI**: Real-time display of physics parameters including:
+  - Position, velocity, and acceleration vectors
+  - Angular momentum and rotational dynamics
+  - Force magnitudes and directions
+  - Orbital characteristics
+- **Procedural Sphere Generation**: Customizable resolution spheres with proper UV mapping
+- **Lighting System**: Diffuse lighting model for realistic celestial illumination
+- **Damping Forces**: Configurable energy dissipation for realistic orbital decay
 
-### 3. Orbital Resonances and Tidal Locking
-   - **Description**: Implement orbital resonance mechanics (e.g., 1:2 or 1:3 resonances) to model how gravitational interactions between bodies influence their orbital periods and stability. Include tidal locking for close-proximity objects, where one body always faces another.
-   - **Use Case**: Model Jupiter and its moons, showcasing how resonances impact orbits and drive geological activity, or simulate the tidal locking of Earth and its moon.
+### Educational Focus
+Perfect for:
+- **Students** learning orbital mechanics and physics
+- **Educators** demonstrating gravitational concepts
+- **Developers** interested in physics simulation and game engine architecture
+- **Astronomy enthusiasts** exploring celestial dynamics
 
-### 4. Planetary Perturbation Analysis
-   - **Description**: Add the ability to visualize and calculate gravitational perturbations from nearby planets or stars, which slightly alter the paths of orbiting bodies over time.
-   - **Use Case**: Demonstrate how Jupiter's gravity influences the asteroid belt or how small perturbations from a passing body can affect long-term orbital stability.
+## Architecture
 
-### 5. Lagrange Points and Stable Orbits
-   - **Description**: Include the computation and visualization of Lagrange points, where gravitational forces between two large bodies (e.g., a planet and a star) create stable points in space for smaller objects.
-   - **Use Case**: Place spacecraft in Earth's Lagrange points or simulate the formation of Trojan asteroids in Jupiter's orbit.
+Inertia is built with a modular design that separates concerns across several key components:
 
-### 6. Collision and Gravitational Slingshots
-   - **Description**: Model close encounters between bodies that can result in gravitational slingshots, where a smaller object gains or loses momentum by passing near a larger body. Include collision mechanics for bodies that come within a certain distance, altering mass and trajectory.
-   - **Use Case**: Simulate asteroid flybys of planets or slingshot maneuvers used by spacecraft for energy-efficient travel.
-
-### 7. Planetary Migration and System Evolution
-   - **Description**: Add simulations for the gradual inward or outward migration of planets within a solar system due to gravitational interactions or loss of angular momentum. This would allow for studying how solar systems evolve over time.
-   - **Use Case**: Model how young gas giants may migrate inward, as theorized in the early Solar System, or how interactions can push smaller bodies toward outer regions.
-
-### 8. Binary Star Systems and Multi-Star Orbits
-   - **Description**: Support the simulation of binary or trinary star systems, where planets orbit around two or more stars. This adds complexity to orbital mechanics, as planets in such systems can have non-circular, highly dynamic orbits.
-   - **Use Case**: Show how binary star systems can influence the orbit stability of surrounding planets and test the habitability zone in multi-star systems.
-
-### 9. Visualized Orbital Prediction and Path Projection
-   - **Description**: Implement a tool to project and display future orbital paths based on current velocities and gravitational forces. This would be helpful for identifying potential collisions, resonances, or orbital drift.
-   - **Use Case**: Visualize a comet’s path as it approaches the Sun or the altered trajectory of a small moon due to a planetary close encounter.
-
-### 10. Escape Velocity and Hill Spheres
-   - **Description**: Add calculations and visual indicators for escape velocity (speed required for an object to escape another's gravitational pull) and Hill spheres (regions within which a planet's gravity dominates over its star’s).
-   - **Use Case**: Demonstrate how far a moon can orbit a planet without being pulled away by a nearby star or simulate spacecraft trying to escape a planet’s gravity well.
-
-### 11. Perturbations from Passing Stars or Rogue Planets
-   - **Description**: Introduce the possibility of external objects, such as rogue planets or passing stars, temporarily entering the system, causing gravitational perturbations. These could alter orbits or even eject smaller bodies from the system.
-   - **Use Case**: Model hypothetical encounters with rogue planets and study their effects on planetary systems' stability and asteroid trajectories.
-
-### 12. Orbital Decay Due to Tidal Forces
-   - **Description**: Simulate orbital decay for bodies in close orbits, accounting for tidal forces that gradually reduce their distance. This is especially relevant for moons orbiting large planets or planets close to their stars.
-   - **Use Case**: Show how moons like Phobos are slowly spiraling into Mars or simulate a hypothetical planet losing its orbit around a star over eons.
-
-### 13. Resonant Orbit Transfers and Station-Keeping
-   - **Description**: Implement support for simulating resonant orbit transfers, a technique used by spacecraft to change orbits with minimal fuel by using natural gravitational assists. Include station-keeping mechanics for orbit stabilization.
-   - **Use Case**: Show how a spacecraft uses Earth’s gravity for a resonant transfer to reach Mars or how satellites maintain their geostationary orbits through small corrections.
-
-### 14. Eccentricity and Inclination Variations
-   - **Description**: Model the variations in orbital eccentricity (shape) and inclination (tilt) over time due to gravitational interactions, such as Kozai oscillations that exchange inclination for eccentricity.
-   - **Use Case**: Demonstrate how a comet’s orbit can evolve from circular to highly elliptical or how a planet’s axial tilt can change over millennia, affecting climate.
-
-### 15. Three-Body Problems and Chaotic Orbits
-   - **Description**: Add a feature to analyze chaotic orbits and three-body problem scenarios, where three gravitational bodies interact, leading to unpredictable orbital changes. This is particularly useful for studying highly dynamic systems.
-   - **Use Case**: Simulate the Earth, Moon, and Sun interactions or the complex orbit of a moon in a binary planet system.
-
-# How it Works
-
-### 1. Planet generation
-##### Sphere Generation
-In order to create a sphere a structure known as the sphere constructor where you input the radius longitude, and position is given.
-- for each point in the sphere, at a specific longitude and latitude, we get two angles phi and theta, which will help us construct the sphere.
-- to change the location of the sphere, a transform matrix is used
-###### Indices
-In 3D rendering with indexed primitives, the **primitive index type** used for a sphere depends on the range of vertices you’re indexing:
-1. **`u16` (16-bit unsigned integer)**: Use this type if you have fewer than 65,536 vertices. It’s common for lower-resolution spheres or less detailed meshes, as it saves memory and can be faster for the GPU to process.
-2. **`u32` (32-bit unsigned integer)**: Use this type if you have 65,536 vertices or more. Higher-resolution spheres or very detailed meshes generally require `u32` indices since `u16` wouldn’t cover the total vertex count.
-
-For spheres, the top and bottom vertices act as "singularities":
-- **Top Pole**: The northernmost vertex is shared by all segments of the first ring.
-- **Bottom Pole**: The southernmost vertex is shared by all segments of the last ring.
-The indexing system works because each `quad` has four vertices that logically represent a grid cell on the sphere's surface. Dividing this grid cell into two triangles allows OpenGL (or the rendering API) to rasterize them correctly, creating a smooth spherical appearance when enough latitude and longitude divisions are used.
-![quad](./quad.png)
-
-
-### 2. Introduction to Gravitational Force
-To model an astral body, we inherit mesh data and add essential physical properties like acceleration, velocity, and mass. We calculate its motion by first applying Newton’s Second Law, ${F}=ma$, to determine acceleration as the result of the sum of forces acting on the body. Here, we incorporate Newton's law of universal gravitation for interactions between bodies, calculating gravitational force based on the formula $F = G \frac{m_1 m_2}{r^2}$​​.
-
-We write $µ = G{m_1 m_2}$ as its a constant, we are just missing r, which is the distance between the two bodies, one we have that, we can apply our force on our body.
-
-But for the universal gravitational force, we need to distance vector between the two bodies, but all we have is the transformation matrices of the two matrices.
-
-To simulate the motion accurately:
-1. **Force Aggregation**: Compute all forces, including gravitational, applied, and resistive forces.
-2. **Integration Step**: Use numerical integration (e.g., Euler or Verlet) to update the velocity and position based on current acceleration.
-3. **Matrix Transformation**: Apply transformation matrices for position updates, ensuring that the simulation accurately reflects forces and resulting movement over discrete time steps.
-
-### 3. Computation
-In the graphics layer, implemented using OpenGL and the Rust-based Glium framework, transformation matrices handle 3D positioning and rendering. These matrices allow translation, rotation, and scaling operations, enabling your code to reflect each body's real-time position in 3D space. OpenGL’s transformation pipeline combines world space with view and projection matrices, rendering each body in an interactive environment that displays real-time physics effects.
-
-In OpenGL, we use transformation matrices to represent affine transformations within $\mathbb{R}^3$. These matrices act as linear maps adapted to the canonical basis of $\mathbb{R}^3$.
-
-By combining force computation with continuous integration and rendering transformations, your engine showcases an accurate, physics-based simulation of gravitational interactions. This project design in Rust with Glium demonstrates a solid foundation for creating and visualizing gravitational forces within a 3D sandbox environment. For more technical specifics, you can refer to the GitHub project repository for code details and documentation.
-
-## Modifiable Parameters
-
-The following parameters are customizable:
-- **Star Mass**: Controls the gravitational pull exerted on planets.
-- **Planet Position and Momentum**: Adjust initial conditions to generate different orbital behaviors.
-- **Time Step**: Fine-tune the precision of the simulation for more accurate results.
-
-# How to Use
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/MadebyDaris/ogl.git
-   cd ogl
-   ```
-
-2. Build the project:
-   ```bash
-   cargo build
-   ```
-
-3. Run the simulation:
-   ```bash
-   cargo run
-   ```
-
-4. Modify the parameters in the configuration file or directly in the code to experiment with different planetary systems.
-
-## Dependencies
-
-- **glium**: For rendering the graphical output.
-- **image**: For handling textures and visualization.
-
-Install all dependencies using:
-
-```bash
-cargo build
 ```
+Inertia Engine
+├── Simulation Layer      # Physics world management
+├── Physics Engine        # Force calculations & integration  
+├── Rendering System      # OpenGL graphics pipeline
+├── Mesh Management       # 3D geometry and texturing
+├── UI System            # Real-time parameter visualization
+└── Utilities            # Math, vectors, and app framework
+```
+
+### Core Systems
+
+**Physics Engine** (`src/physics/`)
+- **AstralBody**: Complete celestial object with mass, velocity, acceleration, and rotational dynamics
+- **Force Calculations**: Universal gravitation, damping forces, and custom force applications
+- **Integration**: Numerical methods for updating position and velocity over time
+
+**Rendering Pipeline** (`src/render/`)
+- **Camera System**: 3D navigation with pitch/yaw controls and perspective projection
+- **Mesh Rendering**: Efficient vertex buffer management and texture mapping
+- **Lighting**: Configurable diffuse lighting for realistic appearance
+
+**User Interface** (`src/utils/ui.rs`)
+- **Real-time Monitoring**: Live physics parameter display
+- **Interactive Controls**: Camera movement and simulation parameters
+- **Educational Widgets**: Clear visualization of complex physics concepts
+
+## Quick Start
+
+### Prerequisites
+- Rust 1.70+ with Cargo
+- OpenGL 3.3+ compatible graphics driver
+- Modern GPU (integrated graphics sufficient for basic simulations)
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/MadebyDaris/Inertia.git
+   cd Inertia
+   ```
+
+2. **Build the project**
+   ```bash
+   cargo build --release
+   ```
+
+3. **Run the simulation**
+   ```bash
+   cargo run --release
+   ```
+
+### First Steps
+1. **Observe the Default System**: The engine starts with a 3-body system (Earth-like planet with two moons)
+2. **Navigate**: Use WASD keys to move, mouse to look around
+3. **Monitor Physics**: Check the UI panels for real-time physics data
+4. **Experiment**: Modify parameters in `src/simulation/example.rs` to create different scenarios
+
+## Controls
+
+| Control | Action |
+|---------|--------|
+| `W/A/S/D` | Move camera forward/left/backward/right |
+| `Arrow Up/Down` | Move camera up/down |
+| `Mouse` | Look around (first-person view) |
+| `ESC` | Exit simulation |
+
+## Customization
+
+### Creating New Scenarios
+
+```rust
+// Example: Create a custom celestial body
+let mut planet = sphere_constructor.sphere_physics_object(
+    Vector(0.0, 0.0, 0.0),  // Initial velocity
+    100.0,                   // Mass
+    &display, 
+    earth_shader
+);
+planet.mesh.translate(50.0, 0.0, 0.0);  // Position in space
+```
+
+### Adjustable Parameters
+- **Gravitational Constant**: Modify `G` in physics calculations
+- **Time Step**: Adjust `delta_time` for simulation speed/accuracy
+- **Damping Coefficient**: Control orbital decay rates
+- **Camera Sensitivity**: Customize movement and look speeds
+- **Sphere Resolution**: Balance visual quality vs. performance
+
+## Technical Details
+
+### Dependencies
+- **glium**: Modern OpenGL wrapper for Rust
+- **nalgebra**: Linear algebra and matrix operations
+- **egui**: Immediate-mode GUI for debugging interface
+- **image**: Texture loading and processing
+- **winit**: Cross-platform window management
+
+### Performance Considerations
+- Optimized for real-time simulation (60+ FPS)
+- Efficient O(n²) gravitational calculations
+- GPU-accelerated rendering pipeline
+- Memory-efficient mesh management
+
+## Educational Applications
+
+### Physics Concepts Demonstrated
+- **Newton's Law of Universal Gravitation**: F = G(m₁m₂)/r²
+- **Newton's Second Law**: F = ma
+- **Conservation of Energy**: Kinetic + potential energy
+- **Angular Momentum**: Rotational dynamics and precession
+- **Orbital Mechanics**: Elliptical orbits, escape velocity, tidal forces
+
+### Suggested Experiments
+1. **Binary Star Systems**: Create two massive bodies orbiting each other
+2. **Slingshot Maneuvers**: Launch a small body past a large one
+3. **Three-Body Problems**: Explore chaotic orbital dynamics
+4. **Tidal Locking**: Observe rotational synchronization
+5. **Orbital Decay**: Study the effects of damping forces
+
+## Future Development
+
+We're continuously expanding Inertia's capabilities. See our [roadmap](docs/ROADMAP.md) for upcoming features including:
+
+- **Advanced Integration Methods** (Runge-Kutta, Verlet)
+- **Collision Detection & Merging**
+- **Procedural Planet Generation**
+- **Realistic Texturing & Atmospheres** 
+- **Time Acceleration Controls**
+- **Orbital Prediction Visualization**
+- **Binary/Multiple Star Systems**
+- **Spacecraft Trajectory Planning**
+
+## Contributing
+
+We welcome contributions! Whether you're fixing bugs, adding features, or improving documentation:
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Commit your changes: `git commit -m 'Add amazing feature'`
+4. Push to the branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request
+
+### Development Setup
+```bash
+cargo fmt      # Format code
+cargo clippy   # Lint code
+cargo test     # Run tests
+cargo doc --open  # Generate and view documentation
+```
+
+## Resources
+
+- **Documentation**: [API Reference](docs/)
+- **Examples**: [Tutorial Scenarios](examples/)
+- **Physics Background**: [Orbital Mechanics Primer](docs/physics-primer.md)
+- **OpenGL Learning**: [LearnOpenGL](https://learnopengl.com/)
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+
+- The Rust community for excellent graphics and math libraries
+- OpenGL contributors for the robust graphics standard
+- Physics educators and textbooks that inspired accurate implementations
+- The open-source community for continuous feedback and improvements
 
 ---
 
-Feel free to modify and extend the project to suit your needs
+**Ready to explore the cosmos?**

@@ -2,9 +2,23 @@ use glium::winit::event::{self, ElementState, WindowEvent};
 
 use crate::render::{Camera, CameraMat};
 
-use super::app::Action;
+use super::{app::Action, timeutil::SimulationTime};
+#[macro_export]
+macro_rules! handle_input {
+    ($self:ident, $event:ident, $( ($key:ident, $state:ident) ),* ) => {
+        use glium::winit::{event::ElementState, keyboard};
+        let pressed = $event.state == ElementState::Pressed;
+        let key = $event.physical_key;
 
-pub fn handle_events(events: &Vec<event::Event<()>>, _camera: &mut Camera,camera_mat: &mut CameraMat) -> Action {
+        match key {
+            $( glium::winit::keyboard::PhysicalKey::Code(keyboard::KeyCode::$key) => {$self.$state = pressed
+        })*
+            _ => (),
+        }
+    };
+}
+
+pub fn handle_events(events: &Vec<event::Event<()>>, _camera: &mut Camera,camera_mat: &mut CameraMat, Time: &mut SimulationTime) -> Action {
     let mut action = Action::Continue;
     for event in events {
         match event {
@@ -29,6 +43,7 @@ pub fn handle_events(events: &Vec<event::Event<()>>, _camera: &mut Camera,camera
                         action = Action::Stop; // Stop the application
                     }
                     WindowEvent::KeyboardInput { event, .. } => {
+                        Time.input(event);
                         _camera.input(event); // Pass keyboard input to camera
                         if event.state == ElementState::Pressed 
                            && event.logical_key == glium::winit::keyboard::Key::Named(glium::winit::keyboard::NamedKey::Escape) {

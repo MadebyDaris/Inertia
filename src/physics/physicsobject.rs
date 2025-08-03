@@ -148,6 +148,46 @@ impl AstralBody {
         self.euler_angles.yaw %= std::f32::consts::TAU;
         self.euler_angles.roll %= std::f32::consts::TAU;
     }
+    // 
+    // Misc functions
+    // 
+    pub fn detect_collision(body1: &AstralBody, body2: &AstralBody) -> bool {
+        let distance = (body1.position() - body2.position()).magnitude();
+        distance <= (body1.r + body2.r)
+    }
+    pub fn handle_collision(body1: &mut AstralBody, body2: &mut AstralBody) {
+        let m1 = body1.mass;
+        let m2 = body2.mass;
+    
+        let v1 = body1.velocity;
+        let v2 = body2.velocity;
+    
+        // Normal vector between the bodies
+        let collision_normal = (body2.position() - body1.position()).normalized();
+    
+        // Calculate velocities along the normal
+        let v1_normal = Vector::dot(v1, collision_normal);
+        let v2_normal = Vector::dot(v2, collision_normal);
+    
+        // Exchange velocities based on mass
+        let v1_normal_new = (v1_normal * (m1 - m2) + 2.0 * m2 * v2_normal) / (m1 + m2);
+        let v2_normal_new = (v2_normal * (m2 - m1) + 2.0 * m1 * v1_normal) / (m1 + m2);
+    
+        // Update velocities by projecting along the collision normal
+        body1.velocity += collision_normal * (v1_normal_new - v1_normal);
+        body2.velocity += collision_normal * (v2_normal_new - v2_normal);
+    }
+    pub fn handle_angular_impulse(body1: &mut AstralBody, body2: &mut AstralBody, collision_point: Vector) {
+        let r1 = collision_point - body1.position();
+        let r2 = collision_point - body2.position();
+    
+        let impulse = (body2.velocity - body1.velocity).magnitude(); // Simplified impulse calculation
+        let torque1 = Vector::cross(r1, Vector(impulse, 0., 0.)); // Torque on body1
+        let torque2 = Vector::cross(r2, Vector(impulse, 0., 0.)); // Torque on body2
+    
+        body1.angular_velocity += torque1 / body1.moment_of_inertia;
+        body2.angular_velocity += torque2 / body2.moment_of_inertia;
+    }
 }
 impl SphereConstructor {
     pub fn sphere_physics_object(&self, velocity: Vector, mass: f32, screen: &Display<WindowSurface>, shader_data: ShaderData) -> AstralBody{

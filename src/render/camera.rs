@@ -2,8 +2,9 @@ use glium::{glutin::surface::WindowSurface, winit::{event::{DeviceEvent, Element
 use matrix::TransformMatrix;
 use vector::Vector;
 use std::f32::consts::PI as pi;
+use keyboard::KeyCode;
 
-use crate::utils::*;
+use crate::{handle_input, utils::*};
 #[derive(Clone, Copy)]
 pub struct CameraMat{ 
     pub view_mat: TransformMatrix,
@@ -174,17 +175,13 @@ impl Camera {
     }
 
     pub fn input(&mut self, event: &KeyEvent) {
-        let pressed = event.state == ElementState::Pressed;
-        let key = event.physical_key;
-        match key {
-            glium::winit::keyboard::PhysicalKey::Code(keyboard::KeyCode::ArrowUp) => self.moving_up = pressed,
-            glium::winit::keyboard::PhysicalKey::Code(keyboard::KeyCode::ArrowDown) => self.moving_down = pressed,
-            glium::winit::keyboard::PhysicalKey::Code(keyboard::KeyCode::KeyA) => self.moving_left = pressed,
-            glium::winit::keyboard::PhysicalKey::Code(keyboard::KeyCode::KeyD) => self.moving_right = pressed,
-            glium::winit::keyboard::PhysicalKey::Code(keyboard::KeyCode::KeyW) => self.moving_forward = pressed,
-            glium::winit::keyboard::PhysicalKey::Code(keyboard::KeyCode::KeyS) => self.moving_backward = pressed,
-            _ => (),
-    
-        };
+        handle_input!(self, event,
+            (KeyQ, moving_up),
+            (KeyE, moving_down),
+            (KeyA, moving_left),
+            (KeyD, moving_right),
+            (KeyW, moving_forward),
+            (KeyS, moving_backward)
+        );
     }
 }
