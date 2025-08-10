@@ -6,6 +6,7 @@ mod simulation;
 mod render;
 mod utils;
 mod physics;
+mod ui;
 pub mod mesh; 
 
 fn main() {

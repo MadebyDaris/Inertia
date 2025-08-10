@@ -10,7 +10,7 @@ pub fn position_euclidean(body: &MeshObject) -> Vector {
     return Vector(matrix[3][0],matrix[3][1],matrix[3][2]);
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Force {
     pub direction: Vector,
     pub magnitude: f32

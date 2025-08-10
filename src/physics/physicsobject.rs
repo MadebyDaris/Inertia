@@ -3,7 +3,8 @@ use sphere::SphereConstructor;
 
 use crate::physics::Force;
 
-use crate::{mesh::*, utils::{matrix::TransformMatrix, ui::AstralBodyInfoWidget}};
+use crate::{mesh::*, utils::{matrix::TransformMatrix}};
+use crate::ui::*;
 use super::{position_euclidean, EulerAngles, Vector};
 
 #[macro_export]
