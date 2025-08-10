@@ -1,5 +1,5 @@
 use super::super::render::*;
-use crate::{physics::physicsobject::*, utils::vector::Vector, world::DiffuseLight};
+use crate::{physics::physicsobject::*, utils::vector::Vector, physics::world::DiffuseLight};
 
 use glium::{glutin::surface::WindowSurface, index::PrimitiveType, uniform, Display, Frame, IndexBuffer, Surface};
 

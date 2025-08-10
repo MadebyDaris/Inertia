@@ -218,9 +218,9 @@ impl SphereConstructor {
 // SOME FUNCTIONS FOR THE UI
 // 
 impl AstralBody {
-    pub fn get_widget(&self, name: String)-> AstralBodyInfoWidget {
+    pub fn get_widget(&self, name: &String)-> AstralBodyInfoWidget {
         return AstralBodyInfoWidget {
-            name,
+            name: name.to_string(),
             mass: self.mass,
             position: self.position_str(),
             velocity: self.velocity_str(),
