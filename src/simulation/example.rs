@@ -1,16 +1,14 @@
 use std::f32::consts::PI;
 
+use crate::utils::timeutil::SimulationTime;
 use crate::{calculate_g_forces, update_astral_body_physics};
-
+// Import necessary modules and structs
 use crate::mesh::sphere::SphereConstructor;
 use crate::mesh::ShaderData;
 use crate::physics::{physicsobject, physicsworld::*};
-
 use crate::utils::eventhandler::handle_events;
+use crate::ui::{AstralBodyInfoWidget, WidgetManager, SimulationInfoWidget, Widget};
 use crate::utils::{app::*, vector::Vector};
-use crate::utils::timeutil::SimulationTime;
-
-use crate::ui::*;
 use super::world::*;
 use super::super::render::*;
 

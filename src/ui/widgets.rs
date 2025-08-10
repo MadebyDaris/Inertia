@@ -123,9 +123,9 @@ impl ControlWidget for ControlBarWidget{
             Ui.horizontal(|hor_ui|{
                 hor_ui.label(RichText::new("  Inertia !  ").font(FontId::proportional(25.0)));
                 hor_ui.separator();
-
                 if hor_ui.button("Add Object").clicked() {
                     self.show_object_creator = !self.show_object_creator;
+                    println!("Add Object pressed : Widget Visibility : ${0}", self.show_object_creator)
                 }
                 
                 if hor_ui.button("Time Control").clicked() {
@@ -228,10 +228,10 @@ impl ControlWidget for ObjectCreatorWidget {
 
 
         let mut response = WidgetResponse::None;
-        egui::Window::new("Object Creator")
+        let window = egui::Window::new("Object Creator")
         .open(&mut open)
-        .resizable(true)
-        .show(ctx, |ui| {
+        .resizable(true);
+        window.show(ctx, |ui| {
             ui.horizontal(|ui| {
             ui.label("Name:");
             ui.text_edit_singleline(&mut self.name);
@@ -291,10 +291,11 @@ impl ControlWidget for ObjectCreatorWidget {
                     close_now = true;
                 }
             });
-            if close_now {
-                open = false;
-            }
         });
+        print!("Open: ${open}");
+        if close_now {
+            open = false;
+        }
         self.visible = open;
         response
     }
