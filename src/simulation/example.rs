@@ -173,9 +173,9 @@ pub fn example() {
 
             let ui_responses = ui_object.render_ui(&window, &display, &mut frame, |egui_context| {
                 for w in &astral_body_widgets {
-                    w.show(egui_context);
+                    w.show_widget(egui_context);
                 }
-                &simulation_info.show(egui_context);
+                &simulation_info.show_widget(egui_context);
             });
             for response in ui_responses {
                 simulation.handle_ui_response(response, &display);

@@ -32,11 +32,11 @@ pub struct WidgetManager {
 // Defining two different types of widgets
 // 
 pub trait Widget: Clone {
-    fn show(&self, ctx: &EguiContext);
+    fn show_widget(&self, ctx: &EguiContext);
 }
 
 pub trait ControlWidget {
-    fn show(&mut self, ctx: &EguiContext) -> WidgetResponse;
+    fn show_control_widget(&mut self, ctx: &EguiContext) -> WidgetResponse;
 }
 
 #[allow(dead_code)]
@@ -54,13 +54,13 @@ pub enum WidgetEnum {
 impl WidgetEnum {
     pub fn show(&self, ctx: &EguiContext) {
         match self {
-            WidgetEnum::AstralBodyInfo(widget) => widget.show(ctx),
-            WidgetEnum::SimulationInfo(widget) => widget.show(ctx),
-            WidgetEnum::ControlBar(widget) => widget.show(ctx),
-            WidgetEnum::ObjectCreator(widget) => widget.show(ctx),
-            WidgetEnum::TimeController(widget) => widget.show(ctx),
-            WidgetEnum::ForceManager(widget) => widget.show(ctx),
-            WidgetEnum::OrbitVisualizer(widget) => widget.show(ctx),
+            WidgetEnum::AstralBodyInfo(widget) => widget.show_widget(ctx),
+            WidgetEnum::SimulationInfo(widget) => widget.show_widget(ctx),
+            WidgetEnum::ControlBar(widget) => widget.show_control_widget(ctx),
+            WidgetEnum::ObjectCreator(widget) => widget.show_control_widget(ctx),
+            WidgetEnum::TimeController(widget) => widget.show_control_widget(ctx),
+            WidgetEnum::ForceManager(widget) => widget.show_control_widget(ctx),
+            WidgetEnum::OrbitVisualizer(widget) => widget.show_control_widget(ctx),
         }
     }
 }
@@ -88,18 +88,37 @@ impl WidgetManager {
             // Run the provided widget rendering function
             render_widgets(egui_context);
 
-                        // Render control widgets and collect responses
-            responses.push(ControlWidget::show(&mut self.control_bar, egui_context));
-            responses.push(ControlWidget::show(&mut self.object_creator, egui_context));
-            // responses.push(ControlWidget::show(&mut self.time_controller, egui_context));
-            // responses.push(ControlWidget::show(&mut self.force_manager, egui_context));
-            // responses.push(ControlWidget::show(&mut self.orbit_visualizer, egui_context));
+            // Render control widgets and collect responses
+            let control_response = ControlWidget::show_control_widget(&mut self.control_bar, egui_context);
+            responses.push(control_response);
+            
+            // Update widget visibility based on control bar state
+            self.object_creator.visible = self.control_bar.show_object_creator;
+            self.time_controller.visible = self.control_bar.show_time_controller;
+            self.force_manager.visible = self.control_bar.show_force_manager;
+            // self.orbit_visualizer.visible = self.control_bar.show_orbit_visualizer;
+            
+            // Show the widgets if they're visible
+            if self.object_creator.visible {
+                responses.push(ControlWidget::show_control_widget(&mut self.object_creator, egui_context));
+            }
+            
+            // if self.time_controller.visible {
+            //     responses.push(ControlWidget::show(&mut self.time_controller, egui_context));
+            // }
+            
+            // if self.force_manager.visible {
+            //     responses.push(ControlWidget::show(&mut self.force_manager, egui_context));
+            // }
+            
+            // if self.orbit_visualizer.visible {
+            //     responses.push(ControlWidget::show(&mut self.orbit_visualizer, egui_context));
+            // }
 
-                        // Render additional widgets
+            // Render additional widgets
             for widget in &self.widgets {
                 widget.show(egui_context);
             }
-
         });
 
         self.egui.paint(display, frame);

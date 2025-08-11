@@ -58,7 +58,7 @@ impl AstralBodyInfoWidget {
 }
 
 impl Widget for AstralBodyInfoWidget {
-    fn show(&self, ctx: &EguiContext) {
+    fn show_widget(&self, ctx: &EguiContext) {
         egui::Window::new(format!("Information about {}", self.name)).show(ctx, |ui| {
             ui.label(format!("Name: {}", self.name));
             ui.label(format!("Mass: {:.2} kg", self.mass));
@@ -83,7 +83,7 @@ pub struct SimulationInfoWidget {
 }
 
 impl Widget for SimulationInfoWidget {
-    fn show(&self, ctx: &EguiContext) {
+    fn show_widget(&self, ctx: &EguiContext) {
         egui::Window::new("Simulation information:").show(ctx, |ui: &mut Ui| {
             ui.heading("Simulation Information");
             ui.label(format!("Elapsed Time: {:.2} seconds", self.elapsed_time));
@@ -97,10 +97,10 @@ impl Widget for SimulationInfoWidget {
 // 
 #[derive(Clone)]
 pub struct ControlBarWidget {
-    show_object_creator: bool,
-    show_time_controller: bool,
-    show_force_manager: bool,
-    show_orbit_visualizer: bool,
+    pub show_object_creator: bool,
+    pub show_time_controller: bool,
+    pub show_force_manager: bool,
+    pub show_orbit_visualizer: bool,
 }
 impl ControlBarWidget {
     pub fn new() -> Self {
@@ -113,12 +113,12 @@ impl ControlBarWidget {
     }
 }
 impl Widget for ControlBarWidget {
-    fn show(&self, ctx: &EguiContext) {
+    fn show_widget(&self, ctx: &EguiContext) {
         // Will be handled by ControlWidget
     }
 }
 impl ControlWidget for ControlBarWidget{
-    fn show(&mut self, ctx: &EguiContext) -> WidgetResponse {
+    fn show_control_widget(&mut self, ctx: &EguiContext) -> WidgetResponse {
         egui::TopBottomPanel::bottom("control_bar").show(ctx, |Ui| {
             Ui.horizontal(|hor_ui|{
                 hor_ui.label(RichText::new("  Inertia !  ").font(FontId::proportional(25.0)));
@@ -173,7 +173,7 @@ impl OrbitVisualizerWidget {
     }
 }
 impl Widget for OrbitVisualizerWidget {
-    fn show(&self, ctx: &EguiContext) {
+    fn show_widget(&self, ctx: &EguiContext) {
         // Will be handled by ControlWidget 
     }
 }
@@ -215,12 +215,12 @@ impl ObjectCreatorWidget {
     }
 }
 impl Widget for ObjectCreatorWidget {
-    fn show(&self, ctx: &EguiContext) {
+    fn show_widget(&self, ctx: &EguiContext) {
         // Will be handled by ControlWidget
     }
 }
 impl ControlWidget for ObjectCreatorWidget {
-    fn show(&mut self, ctx: &EguiContext) -> super::manager::WidgetResponse {
+    fn show_control_widget(&mut self, ctx: &EguiContext) -> super::manager::WidgetResponse {
         if !self.visible { return WidgetResponse::None; }
 
         let mut open = self.visible;
@@ -323,7 +323,7 @@ impl TimeControllerWidget {
     }
 }
 impl Widget for TimeControllerWidget {
-    fn show(&self, ctx: &EguiContext) {
+    fn show_widget(&self, ctx: &EguiContext) {
         // Will be handled by ControlWidget
     }
 }
@@ -365,7 +365,7 @@ impl ForceManagerWidget {
 }
 
 impl Widget for ForceManagerWidget {
-    fn show(&self, ctx: &EguiContext) {
+    fn show_widget(&self, ctx: &EguiContext) {
         // Will be handled by ControlWidget
     }
 }
