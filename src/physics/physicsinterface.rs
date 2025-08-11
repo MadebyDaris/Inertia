@@ -1,6 +1,4 @@
-use std::{collections::HashMap, hash::Hash, string};
-
-use crate::{mesh::{sphere::SphereConstructor, ShaderData}, physics::{physicsobject::AstralBody, physicsworld::PhysicsWorld}, simulation::simulation::Simulation, ui::{AstralBodyInfoWidget, ForceCommand, ObjectCreationRequest, TimeControlCommand, VisualCommand, WidgetResponse}, utils::vector::Vector};
+use crate::utils::vector::Vector;
 
 // In src/ui/mod.rs or wherever you keep your macros
 #[macro_export]

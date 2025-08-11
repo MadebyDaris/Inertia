@@ -64,6 +64,11 @@ impl Vector {
             self.2 / magnitude,
         )
     }
+    pub fn to_scalar(self) -> f32 {
+        (self.0.powi(2) + self.1.powi(2) + self.2.powi(2)).sqrt()
+
+    }
+    
     pub fn cross(a: Vector, b: Vector) -> Vector {
         return Vector(a.1*b.2 - a.2*b.1, a.2*b.0 - a.0*b.2, a.0*b.1 - a.1*b.0)}
     pub fn magnitude(&self) -> f32 {

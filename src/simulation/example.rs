@@ -1,15 +1,15 @@
 use std::f32::consts::PI;
 
-use crate::simulation::simulation::{self, Simulation};
+use crate::simulation::simulation::Simulation;
 use crate::physics::world::DiffuseLight;
-use crate::utils::timeutil::SimulationTime;
+use crate::simulation::timeutil::SimulationTime;
 use crate::{calculate_g_forces, update_astral_body_physics, create_widgets};
 // Import necessary modules and structs
 use crate::mesh::sphere::SphereConstructor;
 use crate::mesh::ShaderData;
-use crate::physics::{physicsinterface, physicsobject, physicsworld::*};
+use crate::physics::{physicsobject, physicsworld::*};
 use crate::utils::eventhandler::handle_events;
-use crate::ui::{AstralBodyInfoWidget, WidgetManager, SimulationInfoWidget, Widget};
+use crate::ui::{AstralBodyInfoWidget, SimulationInfoWidget, Widget, WidgetManager};
 use crate::utils::{app::*, vector::Vector};
 use super::super::render::*;
 
@@ -19,7 +19,8 @@ pub fn example() {
     let (
         display, 
         event_loop, 
-        window) = Ogl::new();
+        window
+    ) = Inertia::new();
     let event_loop = event_loop;
     // &window.set_cursor_visible(false);
 
@@ -52,10 +53,10 @@ pub fn example() {
 
     // Create Meshes for the spheres
     // Create AstralBody instances for the spheres
-    let mut body_1 = sphere_constructor.sphere_physics_object(Vector(0.0, 0., 0.), 210.0, &display, earth_shader.clone());
-    let mut body_2 = sphere_constructor.sphere_physics_object(Vector(0., 0., 5.), 1.0, &display, sphere_shaders.clone());
-    let mut body_3 = sphere_constructor.sphere_physics_object(Vector(0., 0., 5.), 1.0, &display, sphere_shaders.clone());
-    let mut ui_object = WidgetManager::new(&display, &window, &event_loop);
+    let mut body_1: physicsobject::AstralBody = sphere_constructor.sphere_physics_object(Vector(0.0, 0., 0.), 210.0, &display, earth_shader.clone());
+    let mut body_2: physicsobject::AstralBody = sphere_constructor.sphere_physics_object(Vector(0., 0., 5.), 1.0, &display, sphere_shaders.clone());
+    let mut body_3: physicsobject::AstralBody = sphere_constructor.sphere_physics_object(Vector(0., 0., 5.), 1.0, &display, sphere_shaders.clone());
+    let mut widget_manager: WidgetManager = WidgetManager::new(&display, &window, &event_loop);
 
     {
     body_1.mesh.translate(0., 0., 0.);
@@ -76,7 +77,7 @@ pub fn example() {
 //
 
 
-    Ogl::update(event_loop, move |events| {
+    Inertia::update(event_loop, move |events| {
         let mut frame = display.draw();
         let (width,height) = &display.get_framebuffer_dimensions();
 
@@ -127,25 +128,7 @@ pub fn example() {
 
         // Update trails
         simulation.update_trails();
-
-        // calculate_g_forces!(body_1, &body_2, &body_3);
-        // update_astral_body_physics!(body_1, Time.accelerated_delta_time);
-        // if physicsobject::AstralBody::detect_collision(&body_1, &body_2) {
-        //     physicsobject::AstralBody::handle_collision(&mut body_1, &mut body_2);
-        // }
-
-        // calculate_g_forces!(body_2, &body_1, &body_3);
-        // update_astral_body_physics!(body_2, Time.accelerated_delta_time);
-        // if physicsobject::AstralBody::detect_collision(&body_1, &body_3) {
-        //     physicsobject::AstralBody::handle_collision(&mut body_1, &mut body_3);
-        // }
-
-        // calculate_g_forces!(body_3, &body_1, &body_2);
-        // update_astral_body_physics!(body_3, Time.accelerated_delta_time);
-        // if physicsobject::AstralBody::detect_collision(&body_2, &body_3) {
-        //     physicsobject::AstralBody::handle_collision(&mut body_2, &mut body_3);
-        // }
-    }
+        }
 
     //Camera isn't a part of the simulation
         // Set up the camera matrices for view and perspective, with a 60-degree field of view (PI / 3.0)
@@ -162,37 +145,35 @@ pub fn example() {
 
 
 // 
-// UI widgets
-// 
-        {
-            let astral_body_widgets : Vec<AstralBodyInfoWidget> = create_widgets!(simulation);
-
-            let simulation_info = SimulationInfoWidget {
-                elapsed_time: time.simulation_time,
-            };
-
-            let ui_responses = ui_object.render_ui(&window, &display, &mut frame, |egui_context| {
-                for w in &astral_body_widgets {
-                    w.show_widget(egui_context);
-                }
-                &simulation_info.show_widget(egui_context);
-            });
-            for response in ui_responses {
-                simulation.handle_ui_response(response, &display);
-            }
-        }
-
-// 
 // Render the world with current settings
 // 
+
 
         let object_refs = simulation.create_physics_world();
         let mut world = PhysicsWorld::new(object_refs, _camera, light);       
         world.render(&display, &mut frame, &camera_mat, light, (0.0,0.0,0.0,0.1));
 
+// 
+// UI widgets
+// 
+        let astral_body_widgets : Vec<AstralBodyInfoWidget> = create_widgets!(simulation);
 
+        let simulation_info = SimulationInfoWidget::new(&simulation, time);
+        let ui_responses = widget_manager.render_ui(&window, &display, &mut frame, |egui_context, ui| {
+            for w in &astral_body_widgets {
+                w.show_widget_in_ui(egui_context, ui);
+            }
+            simulation_info.show_widget_in_ui(egui_context, ui);
+        });
+        for response in ui_responses {
+            simulation.handle_ui_response(response, &display);
+        }
+
+// 
+// 
+// 
         frame.finish().unwrap();
-        handle_events(events, &mut _camera, &mut camera_mat, &mut time)
+        handle_events(&window, events, &mut _camera, &mut camera_mat, &mut time, &mut widget_manager)
         }
     ).unwrap()
 }

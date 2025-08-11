@@ -8,6 +8,7 @@ use crate::ui::control_requests::*;
 use crate::ui::widgets::*;
 
 // Describes certain actions that can be taken 
+// These are all the commands
 #[derive(Debug, Clone)]
 pub enum WidgetResponse {
     None,
@@ -17,6 +18,7 @@ pub enum WidgetResponse {
     VisualCommand(VisualCommand),
 }
 
+// The manager object that runs each of the wigets
 // Implement such that if empty do nothing and remove it
 pub struct WidgetManager {
     pub egui: EguiGlium,
@@ -30,15 +32,17 @@ pub struct WidgetManager {
 
 // 
 // Defining two different types of widgets
-// 
+// This is to seperate some widgets that dont have a set Widget response
 pub trait Widget: Clone {
-    fn show_widget(&self, ctx: &EguiContext);
+    fn show_widget_in_ui(&self, ctx: &EguiContext, ui: &mut egui::Ui);
 }
 
 pub trait ControlWidget {
     fn show_control_widget(&mut self, ctx: &EguiContext) -> WidgetResponse;
 }
 
+// These are all the widgets may be used for some implemenations by user
+// And help organize da widgets
 #[allow(dead_code)]
 pub enum WidgetEnum {
     AstralBodyInfo(AstralBodyInfoWidget),
@@ -49,22 +53,23 @@ pub enum WidgetEnum {
     ForceManager(ForceManagerWidget),
     OrbitVisualizer(OrbitVisualizerWidget),
 }
-
-
 impl WidgetEnum {
-    pub fn show(&self, ctx: &EguiContext) {
+    pub fn show(&self, ctx: &EguiContext, ui: &mut  egui::Ui) {
         match self {
-            WidgetEnum::AstralBodyInfo(widget) => widget.show_widget(ctx),
-            WidgetEnum::SimulationInfo(widget) => widget.show_widget(ctx),
-            WidgetEnum::ControlBar(widget) => widget.show_control_widget(ctx),
-            WidgetEnum::ObjectCreator(widget) => widget.show_control_widget(ctx),
-            WidgetEnum::TimeController(widget) => widget.show_control_widget(ctx),
-            WidgetEnum::ForceManager(widget) => widget.show_control_widget(ctx),
-            WidgetEnum::OrbitVisualizer(widget) => widget.show_control_widget(ctx),
+            WidgetEnum::AstralBodyInfo(widget) => widget.show_widget_in_ui(ctx, ui),
+            WidgetEnum::SimulationInfo(widget) => widget.show_widget_in_ui(ctx, ui),
+            WidgetEnum::ControlBar(widget) => widget.show_widget_in_ui(ctx, ui),
+            WidgetEnum::ObjectCreator(widget) => widget.show_widget_in_ui(ctx, ui),
+            WidgetEnum::TimeController(widget) => widget.show_widget_in_ui(ctx, ui),
+            WidgetEnum::ForceManager(widget) => widget.show_widget_in_ui(ctx, ui),
+            WidgetEnum::OrbitVisualizer(widget) => widget.show_widget_in_ui(ctx, ui),
         }
     }
 }
 
+// 
+// WIDGET MANAGER
+// 
 impl WidgetManager {
     pub fn new( display: &Display<WindowSurface>, window: &Window, event_loop: &EventLoop<()>)  -> Self{
         let egui_glium: EguiGlium = EguiGlium::new(ViewportId::ROOT, display, window, event_loop);
@@ -80,17 +85,15 @@ impl WidgetManager {
     }
     pub fn render_ui<F>(&mut self, window: &Window, display: &Display<WindowSurface>, frame: &mut glium::Frame, mut render_widgets: F) -> Vec<WidgetResponse>
     where
-        F: FnMut(&EguiContext),
+        F: FnMut(&EguiContext, &mut Ui),
     {
         let mut responses: Vec<WidgetResponse> = Vec::new();
-
         self.egui.run(window, |egui_context| {
-            // Run the provided widget rendering function
-            render_widgets(egui_context);
+
 
             // Render control widgets and collect responses
             let control_response = ControlWidget::show_control_widget(&mut self.control_bar, egui_context);
-            responses.push(control_response);
+            responses.push(control_response.clone());
             
             // Update widget visibility based on control bar state
             self.object_creator.visible = self.control_bar.show_object_creator;
@@ -98,28 +101,34 @@ impl WidgetManager {
             self.force_manager.visible = self.control_bar.show_force_manager;
             // self.orbit_visualizer.visible = self.control_bar.show_orbit_visualizer;
             
-            // Show the widgets if they're visible
+
             if self.object_creator.visible {
-                responses.push(ControlWidget::show_control_widget(&mut self.object_creator, egui_context));
+                let creator_response = self.object_creator.show_control_widget(egui_context);
+                responses.push(creator_response);
             }
-            
+
             // if self.time_controller.visible {
-            //     responses.push(ControlWidget::show(&mut self.time_controller, egui_context));
+            //     responses.push(ControlWidget::show_control_widget(&mut self.time_controller, egui_context));
             // }
             
             // if self.force_manager.visible {
-            //     responses.push(ControlWidget::show(&mut self.force_manager, egui_context));
+            //     responses.push(ControlWidget::show_control_widget(&mut self.force_manager, egui_context));
             // }
             
             // if self.orbit_visualizer.visible {
-            //     responses.push(ControlWidget::show(&mut self.orbit_visualizer, egui_context));
+            //     responses.push(ControlWidget::show_control_widget(&mut self.orbit_visualizer, egui_context));
             // }
 
             // Render additional widgets
-            for widget in &self.widgets {
-                widget.show(egui_context);
-            }
-        });
+            egui::SidePanel::left("main_side_panel").show(egui_context, |ui| {
+                    // Run the provided widget rendering function
+                    render_widgets(egui_context, ui);
+
+                    for widget in &self.widgets {
+                        widget.show(egui_context, ui);
+                    }
+                });
+            });
 
         self.egui.paint(display, frame);
         return responses.into_iter().filter(|r| !matches!(r, WidgetResponse::None)).collect::<Vec<WidgetResponse>>();

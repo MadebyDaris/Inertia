@@ -1,7 +1,10 @@
-use egui::{Context as EguiContext, FontId, RichText, Ui, ViewportId};
-use egui_glium::EguiGlium;
-use glium::{glutin::surface::WindowSurface, winit::{event_loop::EventLoop, window::Window}, Display};
-use crate::{physics::physicsobject::AstralBody, ui::{control_requests::ObjectCreationRequest, manager::{ControlWidget, Widget, WidgetResponse}}, utils::vector::Vector};
+use egui::{Context as EguiContext, FontId, RichText};
+use crate::{
+    physics::physicsobject::AstralBody, 
+    simulation::{simulation::Simulation, timeutil::SimulationTime}, 
+    ui::{self, control_requests::ObjectCreationRequest, manager::{ControlWidget, Widget, WidgetResponse}}, 
+    utils::vector::Vector,
+};
 
 
 //
@@ -58,8 +61,8 @@ impl AstralBodyInfoWidget {
 }
 
 impl Widget for AstralBodyInfoWidget {
-    fn show_widget(&self, ctx: &EguiContext) {
-        egui::Window::new(format!("Information about {}", self.name)).show(ctx, |ui| {
+    fn show_widget_in_ui(&self, ctx: &EguiContext, ui: &mut egui::Ui) {
+        ui.collapsing(&self.name, |ui| {
             ui.label(format!("Name: {}", self.name));
             ui.label(format!("Mass: {:.2} kg", self.mass));
             ui.label(format!("Position: {}", self.position));
@@ -77,17 +80,61 @@ impl Widget for AstralBodyInfoWidget {
 // 
 // Simulation Info Widget
 // 
+// TODO:
+// Number of objects in simulation
+// Simulation time acceleration (1x, 10x, etc.)
+// Average velocity or kinetic energy of bodies
+// Total gravitational potential energy of the system
+// Frame time / FPS (helps debugging performance)
+// Center of mass coordinates
+// Largest body name & mass
+// Smallest body name & mass
+// Paused/Running status
+// Collision count (since start)
+
 #[derive(Clone)]
 pub struct SimulationInfoWidget {
     pub elapsed_time: f32,
+    pub time: SimulationTime,
+    pub body_count: usize,
+    pub average_velocity: f32
+}
+impl SimulationInfoWidget {
+    pub fn new(simulation: &Simulation, time_control: SimulationTime) -> Self {
+        let count = simulation.owned_objects.len();
+        let mut total_velocity = Vector(0.0, 0.0, 0.0);
+        for body in &simulation.owned_objects {
+            total_velocity += body.velocity;
+        }
+        let average_velocity = total_velocity / count as f32;
+
+        Self {
+            elapsed_time: 0.0,
+            time: time_control,
+            body_count: count,
+            average_velocity: average_velocity.to_scalar(),
+        }
+    }
 }
 
 impl Widget for SimulationInfoWidget {
-    fn show_widget(&self, ctx: &EguiContext) {
-        egui::Window::new("Simulation information:").show(ctx, |ui: &mut Ui| {
-            ui.heading("Simulation Information");
-            ui.label(format!("Elapsed Time: {:.2} seconds", self.elapsed_time));
-        });
+    fn show_widget_in_ui(&self, ctx: &EguiContext, ui: &mut egui::Ui) {
+        ui.heading("Simulation Info");
+        ui.separator();
+
+        ui.label(format!("Elapsed Time: {:.2} seconds", self.elapsed_time));
+        ui.label(format!("Time Acceleration: {:.2}x", self.time.accelerated_time_factor));
+        ui.label(format!("Number of Bodies: {}", self.body_count));
+        ui.label(format!("Average Velocity: {:.2} m/s", self.average_velocity));
+
+        ui.separator();
+        if ui.button("Pause / Resume").clicked() {
+            // Could emit a pause event to the simulation
+        }
+        if ui.button("Reset Simulation").clicked() {
+            // Could emit a reset event
+        }            
+        ui.separator();
     }
 }
 
@@ -113,8 +160,8 @@ impl ControlBarWidget {
     }
 }
 impl Widget for ControlBarWidget {
-    fn show_widget(&self, ctx: &EguiContext) {
-        // Will be handled by ControlWidget
+    fn show_widget_in_ui(&self, ctx: &EguiContext, ui: &mut egui::Ui) {
+    // Will be handled by ControlWidget
     }
 }
 impl ControlWidget for ControlBarWidget{
@@ -173,7 +220,7 @@ impl OrbitVisualizerWidget {
     }
 }
 impl Widget for OrbitVisualizerWidget {
-    fn show_widget(&self, ctx: &EguiContext) {
+    fn show_widget_in_ui(&self, ctx: &EguiContext, ui: &mut egui::Ui) {
         // Will be handled by ControlWidget 
     }
 }
@@ -215,7 +262,7 @@ impl ObjectCreatorWidget {
     }
 }
 impl Widget for ObjectCreatorWidget {
-    fn show_widget(&self, ctx: &EguiContext) {
+    fn show_widget_in_ui(&self, ctx: &EguiContext, ui: &mut egui::Ui) {
         // Will be handled by ControlWidget
     }
 }
@@ -323,7 +370,7 @@ impl TimeControllerWidget {
     }
 }
 impl Widget for TimeControllerWidget {
-    fn show_widget(&self, ctx: &EguiContext) {
+    fn show_widget_in_ui(&self, ctx: &EguiContext, ui: &mut egui::Ui) {
         // Will be handled by ControlWidget
     }
 }
@@ -365,7 +412,7 @@ impl ForceManagerWidget {
 }
 
 impl Widget for ForceManagerWidget {
-    fn show_widget(&self, ctx: &EguiContext) {
+    fn show_widget_in_ui(&self, ctx: &EguiContext, ui: &mut egui::Ui) {
         // Will be handled by ControlWidget
     }
 }

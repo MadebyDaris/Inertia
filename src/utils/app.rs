@@ -9,9 +9,9 @@ pub enum Action {
     Continue,
 }
 
-pub struct Ogl {}
+pub struct Inertia {}
 
-impl Ogl {
+impl Inertia {
     pub fn new() -> (
         glium::Display<WindowSurface>,
         EventLoop<()>,
