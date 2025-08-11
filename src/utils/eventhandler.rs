@@ -29,11 +29,11 @@ pub fn handle_events(windows: &glium::winit::window::Window, events: &Vec<event:
             event::Event::DeviceEvent { event, .. } => {
                 _camera.look_at(&event); // Handle Device Events
                 _camera.update();
-
             }
             // Handle window events
             event::Event::WindowEvent { event, .. } => {
                 widget_manager.egui.on_event(windows, event);
+                _camera.right_clicking_mouse(event);
                 match event {
                     WindowEvent::Resized(size) => {
                         // Update the projection matrix only

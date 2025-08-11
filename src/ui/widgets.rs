@@ -172,7 +172,6 @@ impl ControlWidget for ControlBarWidget{
                 hor_ui.separator();
                 if hor_ui.button("Add Object").clicked() {
                     self.show_object_creator = !self.show_object_creator;
-                    println!("Add Object pressed : Widget Visibility : ${0}", self.show_object_creator)
                 }
                 
                 if hor_ui.button("Time Control").clicked() {
@@ -339,7 +338,6 @@ impl ControlWidget for ObjectCreatorWidget {
                 }
             });
         });
-        print!("Open: ${open}");
         if close_now {
             open = false;
         }

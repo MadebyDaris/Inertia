@@ -11,7 +11,7 @@ use crate::physics::{physicsobject, physicsworld::*};
 use crate::utils::eventhandler::handle_events;
 use crate::ui::{AstralBodyInfoWidget, SimulationInfoWidget, Widget, WidgetManager};
 use crate::utils::{app::*, vector::Vector};
-use super::super::render::*;
+use crate::render::*;
 
 #[allow(unused_must_use)]
 pub fn example() {
@@ -153,6 +153,7 @@ pub fn example() {
         let mut world = PhysicsWorld::new(object_refs, _camera, light);       
         world.render(&display, &mut frame, &camera_mat, light, (0.0,0.0,0.0,0.1));
 
+        
 // 
 // UI widgets
 // 

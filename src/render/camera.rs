@@ -1,4 +1,4 @@
-use glium::{glutin::surface::WindowSurface, winit::{event::{DeviceEvent, ElementState, KeyEvent}, keyboard}, Display};
+use glium::{glutin::surface::WindowSurface, winit::{event::{DeviceEvent, ElementState, KeyEvent, MouseButton, WindowEvent}, keyboard}, Display};
 use matrix::TransformMatrix;
 use vector::Vector;
 use std::f32::consts::PI as pi;
@@ -31,7 +31,8 @@ pub struct Camera {
     moving_forward: bool,
     moving_backward: bool,
     
-    first_mouse: bool
+    first_mouse: bool,
+    right_clicking: bool
 }
 impl Camera {
     pub fn new(screen: &Display<WindowSurface>) -> Camera {
@@ -59,6 +60,7 @@ impl Camera {
             moving_backward: false,
 
             first_mouse: true,
+            right_clicking: false
         }
     }
 
@@ -99,9 +101,25 @@ impl Camera {
         ]}
     }
     
-    pub fn look_at(&mut self, event: &DeviceEvent) {
+    pub fn right_clicking_mouse(&mut self, event: &WindowEvent) {
         let _mouse_callback = match *event {
+            WindowEvent::MouseInput { state, button, .. } => {
+                if button == MouseButton::Right && state == ElementState::Pressed {
+                    self.right_clicking = true;
+                } else {
+                    self.right_clicking = false;
+                }
+            },
+                _ => return,
+        };
+    }
+
+    pub fn look_at(&mut self, event: &DeviceEvent) {
+        let _mouse_callback = match *event {              
             DeviceEvent::MouseMotion { delta } => {
+                if !self.right_clicking {
+                    return;
+                }
                 if self.first_mouse
                 {
                     self.first_mouse = false;

@@ -7,7 +7,8 @@ mod render;
 mod utils;
 mod physics;
 mod ui;
-pub mod mesh; 
+pub mod mesh;
+mod example;
 
 fn main() {
     example::example()
