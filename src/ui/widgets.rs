@@ -1,8 +1,8 @@
 use egui::{Context as EguiContext, FontId, RichText};
 use crate::{
-    physics::physicsobject::AstralBody, 
+    physics::{physicsobject::AstralBody, Force}, 
     simulation::{simulation::Simulation, timeutil::SimulationTime}, 
-    ui::{self, control_requests::ObjectCreationRequest, manager::{ControlWidget, Widget, WidgetResponse}}, 
+    ui::{self, control_requests::ObjectCreationRequest, manager::{ControlWidget, Widget, WidgetResponse}, ForceCommand, TimeControlCommand}, 
     utils::vector::Vector,
 };
 
@@ -372,6 +372,68 @@ impl Widget for TimeControllerWidget {
         // Will be handled by ControlWidget
     }
 }
+impl ControlWidget for TimeControllerWidget {
+    fn show_control_widget(&mut self, ctx: &EguiContext) -> WidgetResponse {
+        if !self.visible { return WidgetResponse::None; }
+
+        let mut response = WidgetResponse::None;
+        
+        egui::Window::new("Time Ctrl")
+            .open(&mut self.visible)
+            .resizable(true)
+            .show(ctx, |ui| {
+                ui.horizontal(|ui| {
+                    if ui.button(if self.is_paused { "Play" } else { "Pause" }).clicked() {
+                        self.is_paused = !self.is_paused;
+                        response = if self.is_paused { 
+                            WidgetResponse::TimeControl(TimeControlCommand::Pause)
+                        } else { 
+                            WidgetResponse::TimeControl(TimeControlCommand::Play)
+                        };
+                    }
+                    
+                    if ui.button("Reset").clicked() {
+                        response = WidgetResponse::TimeControl(TimeControlCommand::Reset);
+                    }
+                });
+                
+                ui.horizontal(|ui| {
+                    ui.label("Speed:");
+                    if ui.button("0.5x").clicked() {
+                        response = WidgetResponse::TimeControl(TimeControlCommand::SlowDown(0.5));
+                    }
+                    if ui.button("2x").clicked() {
+                        response = WidgetResponse::TimeControl(TimeControlCommand::SpeedUp(2.0));
+                    }
+                    if ui.button("5x").clicked() {
+                        response = WidgetResponse::TimeControl(TimeControlCommand::SpeedUp(5.0));
+                    }
+                });
+                
+                ui.horizontal(|ui| {
+                    ui.label("Current Speed:");
+                    ui.label(format!("{:.2}x", self.speed_multiplier));
+                });
+                
+                ui.separator();
+                ui.label("Time Travel (Experimental)");
+                
+                ui.horizontal(|ui| {
+                    ui.label("Seconds to travel back:");
+                    ui.add(egui::DragValue::new(&mut self.time_travel_seconds).speed(0.1).clamp_range(0.1..=60.0));
+                });
+                
+                ui.horizontal(|ui| {
+                    if ui.button("Back").clicked() {
+                        response = WidgetResponse::TimeControl(TimeControlCommand::GoBackward(self.time_travel_seconds));
+                    }
+                    ui.label("(Warning: Experimental feature)");
+                });
+            });
+        
+        response
+    }
+}
 
 
 // 
@@ -412,5 +474,76 @@ impl ForceManagerWidget {
 impl Widget for ForceManagerWidget {
     fn show_widget_in_ui(&self, ctx: &EguiContext, ui: &mut egui::Ui) {
         // Will be handled by ControlWidget
+    }
+}
+impl ControlWidget for ForceManagerWidget {
+    fn show_control_widget(&mut self, ctx: &EguiContext) -> WidgetResponse {
+        if !self.visible { return WidgetResponse::None; }
+
+        let mut response = WidgetResponse::None;
+        
+        egui::Window::new("Force Manager")
+            .open(&mut self.visible)
+            .resizable(true)
+            .show(ctx, |ui| {
+                ui.horizontal(|ui| {
+                    ui.label("Target Object:");
+                    egui::ComboBox::from_label("Select object")
+                        .selected_text(&self.selected_object)
+                        .show_ui(ui, |ui| {
+                            for object in &self.available_objects {
+                                ui.selectable_value(&mut self.selected_object, object.clone(), object);
+                            }
+                        });
+                });
+                
+                ui.separator();
+                ui.label("Global Settings");
+                
+                ui.horizontal(|ui| {
+                    ui.label("Gravity Constant:");
+                    if ui.add(egui::DragValue::new(&mut self.gravity_constant).speed(0.1)).changed() {
+                        response = WidgetResponse::ForceCommand(ForceCommand::SetGravity(self.gravity_constant));
+                    }
+                });
+                
+                ui.separator();
+                ui.label("💨 Object Forces");
+                
+                ui.horizontal(|ui| {
+                    ui.label("Damping:");
+                    if ui.checkbox(&mut self.damping_enabled, "Enable").changed() {
+                        response = WidgetResponse::ForceCommand(ForceCommand::ToggleDamping {
+                            target_object: self.selected_object.clone(),
+                            enabled: self.damping_enabled,
+                        });
+                    }
+                });
+                
+                ui.horizontal(|ui| {
+                    ui.label("Force Direction (x, y, z):");
+                    ui.add(egui::DragValue::new(&mut self.force_direction[0]).speed(0.1));
+                    ui.add(egui::DragValue::new(&mut self.force_direction[1]).speed(0.1));
+                    ui.add(egui::DragValue::new(&mut self.force_direction[2]).speed(0.1));
+                });
+                
+                ui.horizontal(|ui| {
+                    ui.label("Force Magnitude:");
+                    ui.add(egui::DragValue::new(&mut self.force_magnitude).speed(0.1).clamp_range(0.0..=100.0));
+                });
+                
+                if ui.button("Apply Force").clicked() && !self.selected_object.is_empty() {
+                    let force = Force {
+                        direction: Vector(self.force_direction[0], self.force_direction[1], self.force_direction[2]).normalized(),
+                        magnitude: self.force_magnitude,
+                    };
+                    response = WidgetResponse::ForceCommand(ForceCommand::AddForce {
+                        target_object: self.selected_object.clone(),
+                        force,
+                    });
+                }
+            });
+        
+        response
     }
 }
