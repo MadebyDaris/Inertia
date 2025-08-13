@@ -151,11 +151,7 @@ pub fn example() {
 // 
 
 
-        let object_refs: Vec<Box<dyn PhysicsObject>> = simulation
-            .create_physics_world()
-            .into_iter()
-            .map(|obj| Box::new(obj) as Box<dyn PhysicsObject>)
-            .collect();
+        let object_refs = simulation.get_physics_object_refs();
         let mut world = PhysicsWorld::new((object_refs), _camera, light);       
         world.render(&display, &mut frame, &camera_mat, light, (0.0,0.0,0.0,0.1));
 

@@ -121,6 +121,7 @@ impl WidgetManager {
 
             // Render additional widgets
             egui::SidePanel::left("main_side_panel").show(egui_context, |ui| {
+                
                     // Run the provided widget rendering function
                     render_widgets(egui_context, ui);
 

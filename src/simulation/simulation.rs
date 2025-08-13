@@ -1,7 +1,11 @@
 use std::collections::HashMap;
 
 use crate::{
-    mesh::{sphere::SphereConstructor, ShaderData}, physics::{physicsinterface::OrbitTrail, physicsworld::PhysicsWorld}, simulation::orbital_simulation::astralBody::AstralBody, ui::{ForceCommand, ObjectCreationRequest, TimeControlCommand, VisualCommand, WidgetResponse}, utils::vector::Vector
+    mesh::{sphere::SphereConstructor, MeshObject, ShaderData}, 
+    physics::{physicsinterface::OrbitTrail, physicsobject::PhysicsObject, physicsworld::PhysicsWorld, EulerAngles, Force}, 
+    simulation::orbital_simulation::astralBody::{AstralBody, AstralCollisionObject, AstralPhysicsObject}, 
+    ui::{ForceCommand, ObjectCreationRequest, TimeControlCommand, VisualCommand, WidgetResponse}, 
+    utils::vector::Vector
 };
 
 
@@ -187,7 +191,38 @@ impl<'a> Simulation {
     }
 
     // Add a method to create a PhysicsWorld for rendering
-    pub fn create_physics_world(&self) -> Vec<&AstralBody> {
+    pub fn get_astral_bodies(&self) -> Vec<&AstralBody> {
         self.owned_objects.iter().collect()
+    }
+    pub fn get_physics_object_refs(&self) -> Vec<
+        &dyn PhysicsObject<
+            Mesh = MeshObject, 
+            Velocity = Vector, 
+            Acceleration = Vector, 
+            AngularVelocity = Vector, 
+            AngularAcceleration = Vector, 
+            Mass = f32, 
+            Forces = Vec<Force>, 
+            Torques = Vec<Vector>, 
+            MomentOfInertia = f32, 
+            EulerAngles = EulerAngles, 
+            CollisionObject = AstralCollisionObject>> {
+        let object_refs= self
+            .get_astral_bodies()
+            .into_iter()
+            .map(|obj| obj as &dyn PhysicsObject<
+            Mesh = MeshObject, 
+            Velocity = Vector, 
+            Acceleration = Vector, 
+            AngularVelocity = Vector, 
+            AngularAcceleration = Vector, 
+            Mass = f32, 
+            Forces = Vec<Force>, 
+            Torques = Vec<Vector>, 
+            MomentOfInertia = f32, 
+            EulerAngles = EulerAngles, 
+            CollisionObject = AstralCollisionObject>)
+            .collect();
+        object_refs
     }
 }

@@ -1,16 +1,16 @@
 use egui::{Context as EguiContext, FontId, RichText};
 use crate::{
-    physics::{physicsobject::AstralBody, Force}, 
+    simulation::orbital_simulation::astralBody::AstralBody, physics::Force, 
     simulation::{simulation::Simulation, timeutil::SimulationTime}, 
     ui::{self, control_requests::ObjectCreationRequest, manager::{ControlWidget, Widget, WidgetResponse}, ForceCommand, TimeControlCommand}, 
     utils::vector::Vector,
 };
 
-
+// 
 //
 // Some Widget Examples
 //
-
+// 
 
 // 
 // Astral Body Info Widget

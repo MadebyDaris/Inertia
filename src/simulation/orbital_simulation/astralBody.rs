@@ -17,6 +17,20 @@ pub trait CollisionObject {
     }
 }
 
+pub type AstralPhysicsObject = dyn PhysicsObject<
+    Mesh = MeshObject,
+    Velocity = Vector,
+    Acceleration = Vector,
+    AngularVelocity = Vector,
+    AngularAcceleration = Vector,
+    Mass = f32,
+    Forces = Vec<Force>,
+    Torques = Vec<Vector>,
+    MomentOfInertia = f32,
+    EulerAngles = EulerAngles,
+    CollisionObject = AstralCollisionObject,
+>;
+
 pub struct AstralBody {
     pub mesh: MeshObject,
     pub velocity: Vector,
