@@ -1,5 +1,5 @@
 use super::super::render::*;
-use crate::{physics::physicsobject::*, utils::vector::Vector, physics::world::DiffuseLight};
+use crate::{mesh::MeshObject, physics::{physicsobject::*, world::DiffuseLight, EulerAngles, Force}, simulation::orbital_simulation::astralBody::AstralCollisionObject, utils::vector::Vector};
 
 use glium::{glutin::surface::WindowSurface, index::PrimitiveType, uniform, Display, Frame, IndexBuffer, Surface};
 
@@ -7,14 +7,26 @@ const G: f32 = (5) as f32;
 
 #[allow(dead_code)]
 pub struct PhysicsWorld<'a> {
-    pub children: Vec<&'a AstralBody>,
+    pub children: Vec<&'a dyn 
+        PhysicsObject<
+            Mesh = MeshObject, 
+            Velocity = Vector, 
+            Acceleration = Vector, 
+            AngularVelocity = Vector, 
+            AngularAcceleration = Vector, 
+            Mass = f32, 
+            Forces = Vec<Force>, 
+            Torques = Vec<Vector>, 
+            MomentOfInertia = f32, 
+            EulerAngles = EulerAngles, 
+            CollisionObject = AstralCollisionObject>>,
     pub camera: Camera,
     pub u_light: DiffuseLight
 }
 impl<'a> PhysicsWorld<'a> {
     /// Creates a new World instance
     pub fn new(
-        children: Vec<&'a AstralBody>,
+        children: Vec<&'a dyn PhysicsObject<Mesh = MeshObject, Velocity = Vector, Acceleration = Vector, AngularVelocity = Vector, AngularAcceleration = Vector, Mass = f32, Forces = Vec<Force>, Torques = Vec<Vector>, MomentOfInertia = f32, EulerAngles = EulerAngles, CollisionObject = AstralCollisionObject>>,
         camera: Camera, 
         u_light: DiffuseLight
     ) -> Self {
@@ -39,8 +51,8 @@ impl<'a> PhysicsWorld<'a> {
                 .. Default::default()
             },  .. Default::default()};
         
-        for i in self.children.iter().enumerate() {
-            let object = &self.children[i.0].mesh;
+        for body in &self.children {
+            let object = body.mesh();
             let mesh_object = &object.data;
             let mesh_uniform = &object.uniforms;
 

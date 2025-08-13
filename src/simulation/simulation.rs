@@ -1,9 +1,7 @@
 use std::collections::HashMap;
 
 use crate::{
-    mesh::{sphere::SphereConstructor, ShaderData}, 
-    physics::{physicsinterface::OrbitTrail, physicsobject::AstralBody, physicsworld::PhysicsWorld}, 
-    ui::{ForceCommand, ObjectCreationRequest, TimeControlCommand, VisualCommand, WidgetResponse}, utils::vector::Vector
+    mesh::{sphere::SphereConstructor, ShaderData}, physics::{physicsinterface::OrbitTrail, physicsworld::PhysicsWorld}, simulation::orbital_simulation::astralBody::AstralBody, ui::{ForceCommand, ObjectCreationRequest, TimeControlCommand, VisualCommand, WidgetResponse}, utils::vector::Vector
 };
 
 

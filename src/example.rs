@@ -1,9 +1,11 @@
 use std::f32::consts::PI;
 
+use crate::physics::physicsobject::PhysicsObject;
+use crate::simulation::orbital_simulation::astralBody::AstralBody;
 use crate::simulation::simulation::Simulation;
 use crate::physics::world::DiffuseLight;
 use crate::simulation::timeutil::SimulationTime;
-use crate::{calculate_g_forces, update_astral_body_physics, create_widgets};
+use crate::{calculate_g_forces, create_widgets, simulation, update_body_physics};
 // Import necessary modules and structs
 use crate::mesh::sphere::SphereConstructor;
 use crate::mesh::ShaderData;
@@ -53,9 +55,9 @@ pub fn example() {
 
     // Create Meshes for the spheres
     // Create AstralBody instances for the spheres
-    let mut body_1: physicsobject::AstralBody = sphere_constructor.sphere_physics_object(Vector(0.0, 0., 0.), 210.0, &display, earth_shader.clone());
-    let mut body_2: physicsobject::AstralBody = sphere_constructor.sphere_physics_object(Vector(0., 0., 5.), 1.0, &display, sphere_shaders.clone());
-    let mut body_3: physicsobject::AstralBody = sphere_constructor.sphere_physics_object(Vector(0., 0., 5.), 1.0, &display, sphere_shaders.clone());
+    let mut body_1: AstralBody = sphere_constructor.sphere_physics_object(Vector(0.0, 0., 0.), 210.0, &display, earth_shader.clone());
+    let mut body_2: AstralBody = sphere_constructor.sphere_physics_object(Vector(0., 0., 5.), 1.0, &display, sphere_shaders.clone());
+    let mut body_3: AstralBody = sphere_constructor.sphere_physics_object(Vector(0., 0., 5.), 1.0, &display, sphere_shaders.clone());
     let mut widget_manager: WidgetManager = WidgetManager::new(&display, &window, &event_loop);
 
     {
@@ -118,10 +120,10 @@ pub fn example() {
         // Handle collisions
         for i in 0..simulation.owned_objects.len() {
             for j in (i + 1)..simulation.owned_objects.len() {
-                if physicsobject::AstralBody::detect_collision(&simulation.owned_objects[i], &simulation.owned_objects[j]) {
+                if AstralBody::detect_collision(&simulation.owned_objects[i], &simulation.owned_objects[j]) {
                     // Split borrowing to avoid conflicts
                     let (left, right) = simulation.owned_objects.split_at_mut(j);
-                    physicsobject::AstralBody::handle_collision(&mut left[i], &mut right[0]);
+                    AstralBody::handle_collision(&mut left[i], &mut right[0]);
                 }
             }
         }
@@ -149,8 +151,12 @@ pub fn example() {
 // 
 
 
-        let object_refs = simulation.create_physics_world();
-        let mut world = PhysicsWorld::new(object_refs, _camera, light);       
+        let object_refs: Vec<Box<dyn PhysicsObject>> = simulation
+            .create_physics_world()
+            .into_iter()
+            .map(|obj| Box::new(obj) as Box<dyn PhysicsObject>)
+            .collect();
+        let mut world = PhysicsWorld::new((object_refs), _camera, light);       
         world.render(&display, &mut frame, &camera_mat, light, (0.0,0.0,0.0,0.1));
 
         
