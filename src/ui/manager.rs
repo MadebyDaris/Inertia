@@ -107,13 +107,13 @@ impl WidgetManager {
                 responses.push(creator_response);
             }
 
-            // if self.time_controller.visible {
-            //     responses.push(ControlWidget::show_control_widget(&mut self.time_controller, egui_context));
-            // }
+            if self.time_controller.visible {
+                responses.push(ControlWidget::show_control_widget(&mut self.time_controller, egui_context));
+            }
             
-            // if self.force_manager.visible {
-            //     responses.push(ControlWidget::show_control_widget(&mut self.force_manager, egui_context));
-            // }
+            if self.force_manager.visible {
+                responses.push(ControlWidget::show_control_widget(&mut self.force_manager, egui_context));
+            }
             
             // if self.orbit_visualizer.visible {
             //     responses.push(ControlWidget::show_control_widget(&mut self.orbit_visualizer, egui_context));

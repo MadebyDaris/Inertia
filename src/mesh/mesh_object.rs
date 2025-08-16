@@ -70,11 +70,26 @@ impl Mesh {
             return program
         }
     pub fn texture(display: &Display<WindowSurface>, path: &str) -> SrgbTexture2d {
-        let image = image::load(BufReader::new(File::open(path).unwrap()), image::ImageFormat::Jpeg).unwrap().to_rgba8();
-        let image_dimensions = image.dimensions();
-        let image = glium::texture::RawImage2d::from_raw_rgba_reversed(&image.into_raw(), image_dimensions);
-        let texture = glium::texture::SrgbTexture2d::new(display, image).unwrap();
-        return texture;
+        let file = File::open(path).unwrap_or_else(|err| {
+                eprintln!("Failed to open file: {}", err);
+                eprintln!("Check you're path: {}", path);
+                panic!("Application cannot continue");
+            });
+        if path.ends_with(".jpg") || path.ends_with(".jpeg") {
+            let image = image::load(
+                BufReader::new(file), image::ImageFormat::Jpeg).unwrap().to_rgba8();
+            let image_dimensions = image.dimensions();
+            let image = glium::texture::RawImage2d::from_raw_rgba_reversed(&image.into_raw(), image_dimensions);
+            let texture = glium::texture::SrgbTexture2d::new(display, image).unwrap();
+            return texture;
+        } else {
+            let image = image::load(
+                BufReader::new(file), image::ImageFormat::Png).unwrap().to_rgba8();
+            let image_dimensions = image.dimensions();
+            let image = glium::texture::RawImage2d::from_raw_rgba_reversed(&image.into_raw(), image_dimensions);
+            let texture = glium::texture::SrgbTexture2d::new(display, image).unwrap();
+            return texture;
+        }
     }
 }
 

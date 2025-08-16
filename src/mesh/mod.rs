@@ -1,5 +1,6 @@
 pub mod mesh_object;
 pub mod sphere;
+pub mod grid_floor;
 pub use mesh_object::*;
 
 use glium::{glutin::surface::WindowSurface, index::PrimitiveType, uniform, Display, Frame, IndexBuffer, Surface, VertexBuffer};

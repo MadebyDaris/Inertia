@@ -1,9 +1,6 @@
 use egui::{Context as EguiContext, FontId, RichText};
 use crate::{
-    simulation::orbital_simulation::astralBody::AstralBody, physics::Force, 
-    simulation::{simulation::Simulation, timeutil::SimulationTime}, 
-    ui::{self, control_requests::ObjectCreationRequest, manager::{ControlWidget, Widget, WidgetResponse}, ForceCommand, TimeControlCommand}, 
-    utils::vector::Vector,
+    physics::Force, simulation::{orbital_simulation::{astralBody::AstralBody, AstralPhysicsObject}, simulation::Simulation, timeutil::SimulationTime}, ui::{self, control_requests::ObjectCreationRequest, manager::{ControlWidget, Widget, WidgetResponse}, ForceCommand, TimeControlCommand}, utils::vector::Vector
 };
 
 // 
@@ -100,10 +97,11 @@ pub struct SimulationInfoWidget {
     pub average_velocity: f32
 }
 impl SimulationInfoWidget {
-    pub fn new(simulation: &Simulation, time_control: SimulationTime) -> Self {
-        let count = simulation.owned_objects.len();
-        let mut total_velocity = Vector(0.0, 0.0, 0.0);
-        for body in &simulation.owned_objects {
+    pub fn new(simulation: &dyn Simulation<Object = AstralBody>, time_control: SimulationTime) -> Self {
+        let objects = simulation.get_objects();
+        let count = objects.len();
+        let mut total_velocity: Vector = Vector(0.0, 0.0, 0.0);
+        for body in objects {
             total_velocity += body.velocity;
         }
         let average_velocity = total_velocity / count as f32;
@@ -111,7 +109,7 @@ impl SimulationInfoWidget {
         Self {
             elapsed_time: 0.0,
             time: time_control,
-            body_count: count,
+            body_count: objects.len(),
             average_velocity: average_velocity.to_scalar(),
         }
     }
@@ -252,7 +250,7 @@ impl ObjectCreatorWidget {
             velocity: [0.0, 0.0, 0.0],
             texture_selection: 0,
             available_textures: vec![
-                "./data/tex/2k_mercury.jpg".to_string(),
+                "./data/tex/mercury.jpg".to_string(),
                 "./data/tex/mars.jpg".to_string(),
                 "./data/tex/earth.jpg".to_string(),
                 "./data/tex/jupiter.jpg".to_string(),
