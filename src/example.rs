@@ -84,6 +84,11 @@ pub fn example() {
 
         let object_refs = simulation.get_physics_object_refs();
         let mut world = PhysicsWorld::new(object_refs, _camera, light);       
+        let ray = Ray::new(world.camera.position, world.camera.direction);
+        if let Some((index, distance)) = world.cast_ray(ray) {
+            println!("Ray intersected with object at index {} at a distance of {}", index, distance);
+        }
+
         world.render(&display, &mut frame, &camera_mat, light, (0.0,0.0,0.0,0.1));
 
         grid_mesh.render(&display, &mut frame, camera_mat.view_mat.matrix, camera_mat.pers_mat.matrix);

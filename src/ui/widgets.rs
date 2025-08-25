@@ -3,11 +3,9 @@ use crate::{
     physics::Force, simulation::{orbital_simulation::{astralBody::AstralBody, AstralPhysicsObject}, simulation::Simulation, timeutil::SimulationTime}, ui::{self, control_requests::ObjectCreationRequest, manager::{ControlWidget, Widget, WidgetResponse}, ForceCommand, TimeControlCommand}, utils::vector::Vector
 };
 
-// 
 //
 // Some Widget Examples
 //
-// 
 
 // 
 // Astral Body Info Widget

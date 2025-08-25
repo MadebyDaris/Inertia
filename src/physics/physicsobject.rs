@@ -3,6 +3,7 @@ use sphere::SphereConstructor;
 
 use crate::physics::Force;
 
+use crate::render::ray::Ray;
 use crate::{mesh::*, utils::{matrix::TransformMatrix}};
 use crate::ui::*;
 use super::{position_euclidean, EulerAngles, Vector};
@@ -74,5 +75,6 @@ pub trait PhysicsObject {
     // get function
     fn mesh(&self) -> &Self::Mesh;
     fn position(&self) -> Vector;
+    fn intersects(&self, ray: &Ray) -> Option<f32>;
 }
     

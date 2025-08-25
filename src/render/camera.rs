@@ -16,8 +16,8 @@ pub struct Camera {
     translation_sensitivity: f32,
     rotation_sensitivity: f32,
 
-    position: Vector,
-    direction: Vector,
+    pub position: Vector,
+    pub direction: Vector,
     up: Vector,
 
     _m_position: Vector,

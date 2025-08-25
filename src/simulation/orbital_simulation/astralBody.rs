@@ -3,6 +3,7 @@ use glium::{glutin::surface::WindowSurface, Display};
 use crate::{
     mesh::{sphere::SphereConstructor, Mesh, MeshObject, MeshUniforms, ShaderData}, 
     physics::{physicsobject::PhysicsObject, position_euclidean, EulerAngles, Force}, 
+    render::ray::Ray, // Added Ray
     ui::AstralBodyInfoWidget, utils::{matrix::TransformMatrix, vector::Vector}
 };
 
@@ -135,6 +136,19 @@ impl PhysicsObject for AstralBody {
     
     fn position(&self) -> Vector {
         position_euclidean(&self.mesh)
+    }
+
+    fn intersects(&self, ray: &Ray) -> Option<f32> {
+        let oc = ray.origin - self.position();
+        let a = ray.direction.dot(ray.direction);
+        let b = 2.0 * oc.dot(ray.direction);
+        let c = oc.dot(oc) - self.r * self.r;
+        let discriminant = b * b - 4.0 * a * c;
+        if discriminant < 0.0 {
+            None
+        } else {
+            Some((-b - discriminant.sqrt()) / (2.0 * a))
+        }
     }
 }
 

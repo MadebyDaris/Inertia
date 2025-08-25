@@ -1,5 +1,5 @@
 use super::super::render::*;
-use crate::{mesh::MeshObject, physics::{physicsobject::*, world::DiffuseLight, EulerAngles, Force}, simulation::orbital_simulation::astralBody::AstralCollisionObject, utils::vector::Vector};
+use crate::{mesh::MeshObject, physics::{physicsobject::*, world::DiffuseLight, EulerAngles, Force}, render::ray::Ray, simulation::orbital_simulation::astralBody::AstralCollisionObject, utils::vector::Vector};
 
 use glium::{glutin::surface::WindowSurface, index::PrimitiveType, uniform, Display, Frame, IndexBuffer, Surface};
 
@@ -73,5 +73,26 @@ impl<'a> PhysicsWorld<'a> {
             // Draw the mesh object using the provided vertex buffer, indices, shaders, and uniforms
             target.draw(&mesh_object.vert_buffer, &index_buffer, &mesh_object.program, &uni, &params).unwrap();
         }
-    }       
+    }
+
+    pub fn cast_ray(&self, ray: Ray) -> Option<(usize, f32)> {
+        let mut closest_intersection = None;
+
+        for (i, body) in self.children.iter().enumerate() {
+            if let Some(distance) = body.intersects(&ray) {
+                match closest_intersection {
+                    Some((_, closest_distance)) => {
+                        if distance < closest_distance {
+                            closest_intersection = Some((i, distance));
+                        }
+                    }
+                    None => {
+                        closest_intersection = Some((i, distance));
+                    }
+                }
+            }
+        }
+
+        closest_intersection
+    }
 }
