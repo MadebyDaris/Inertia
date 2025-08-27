@@ -65,77 +65,80 @@ impl PhysicsObject for AstralBody {
     type EulerAngles = EulerAngles;
     type CollisionObject = AstralCollisionObject;
 
-
-    // Update velocity based on current acceleration and delta time
-    fn update_velocity(&mut self, delta_time: f32) {
-        // Update velocity using the formula: v = v0 + a * t
-        self.velocity += self.acceleration * delta_time;
-
-        // Update angular velocity: ω = ω0 + α * t
-        self.angular_velocity += self.angular_acceleration * delta_time;
-    }
-    fn update_geometry(&mut self, delta_time: f32) {
-        self.mesh.translate(self.velocity.0*delta_time, self.velocity.1*delta_time, self.velocity.2*delta_time);
-        
-        // Update orientation by rotating based on current Euler angles (pitch, yaw, roll)
-        self.mesh.rotate(self.euler_angles.pitch, self.euler_angles.yaw, self.euler_angles.roll);
-    }
-
-    // Update acceleration based on total forces acting on the body
-    fn law_of_momentum(&mut self) {
-        let mut resultant_force = Vector(0.,0.,0.);
-        for force in &self.forces {
-            resultant_force += force.direction * force.magnitude
-        }
-        if self.mass != 0.0 { // Avoid division by zero
-            self.acceleration = resultant_force / self.mass;
-        } else {
-            self.acceleration = Vector(0.0, 0.0, 0.0); // No acceleration if mass is zero
-        }
-        let total_torque = self.total_torque();
-        self.angular_acceleration = total_torque / self.moment_of_inertia;
-    
-        self.torques.clear(); // Clear torques for next cycle
-        self.forces.clear(); // Reset forces to only apply new forces in the next cycle
-    }
-
-    // 
-    // angular rotation
-    // 
-    // Calculate total torque from the list of torques
-    fn total_torque(&self) -> Vector {
-        return self.torques.iter().fold(Vector(0., 0., 0.), |acc, t| acc + *t); // Sum up torques
-    }
-
-    // Calculate torque based on applied force and point of application
-    fn calculate_torque(&mut self, force: Force, point: Vector) -> Vector {
-        let direction = position_euclidean(&self.mesh) - point; // Direction vector from point to the body
-        return Vector::cross(direction, force.direction * force.magnitude); // Cross product to get torque
-    }
-
-    // Update angular acceleration based on applied torque and moment of inertia
-    fn update_angular_acceleration(&mut self, torque: Vector, moment_of_inertia: f32) {
-        self.angular_acceleration = torque / moment_of_inertia; // Divide by moment of inertia to get angular acceleration
-    }
-
-    // Update the orientation of the body based on angular velocity
-    fn update_orientation(&mut self, delta_time: f32) {
-        self.euler_angles.pitch += self.angular_velocity.0 * delta_time; // Update pitch
-        self.euler_angles.yaw += self.angular_velocity.1 * delta_time; // Update yaw
-        self.euler_angles.roll += self.angular_velocity.2 * delta_time; // Update roll
-
-        // Wrap angles to keep them in the range [0, 2*PI] if necessary
-        self.euler_angles.pitch %= std::f32::consts::TAU;
-        self.euler_angles.yaw %= std::f32::consts::TAU;
-        self.euler_angles.roll %= std::f32::consts::TAU;
-    }
-    
     fn mesh(&self) -> &Self::Mesh {
         &self.mesh
     }
-    
+
     fn position(&self) -> Vector {
         position_euclidean(&self.mesh)
+    }
+
+    fn mass(&self) -> f32 {
+        self.mass
+    }
+
+    fn moment_of_inertia(&self) -> f32 {
+        self.moment_of_inertia
+    }
+
+    fn velocity(&self) -> Vector {
+        self.velocity
+    }
+
+    fn velocity_mut(&mut self) -> &mut Vector {
+        &mut self.velocity
+    }
+
+    fn acceleration(&self) -> Vector {
+        self.acceleration
+    }
+
+    fn acceleration_mut(&mut self) -> &mut Vector {
+        &mut self.acceleration
+    }
+
+    fn angular_velocity(&self) -> Vector {
+        self.angular_velocity
+    }
+
+    fn angular_velocity_mut(&mut self) -> &mut Vector {
+        &mut self.angular_velocity
+    }
+
+    fn angular_acceleration(&self) -> Vector {
+        self.angular_acceleration
+    }
+
+    fn angular_acceleration_mut(&mut self) -> &mut Vector {
+        &mut self.angular_acceleration
+    }
+
+    fn euler_angles(&self) -> &EulerAngles {
+        &self.euler_angles
+    }
+
+    fn euler_angles_mut(&mut self) -> &mut EulerAngles {
+        &mut self.euler_angles
+    }
+
+    fn forces(&self) -> &Vec<Force> {
+        &self.forces
+    }
+
+    fn forces_mut(&mut self) -> &mut Vec<Force> {
+        &mut self.forces
+    }
+
+    fn torques(&self) -> &Vec<Vector> {
+        &self.torques
+    }
+
+    fn torques_mut(&mut self) -> &mut Vec<Vector> {
+        &mut self.torques
+    }
+
+    fn mesh_mut(&mut self) -> &mut Self::Mesh {
+        &mut self.mesh
     }
 
     fn intersects(&self, ray: &Ray) -> Option<f32> {

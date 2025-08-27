@@ -22,7 +22,7 @@ impl Inertia {
     // ATTRIBUTES
         let window_attributes = WindowAttributes::default()
             .with_resizable(true)
-            .with_inner_size(LogicalSize::new(1024, 700));
+            .with_inner_size(LogicalSize::new(1024, 700)).with_title("Inertia");
         let template_builder = glutin::config::ConfigTemplateBuilder::new();
         let display_builder = DisplayBuilder::new().with_window_attributes(Some(window_attributes));
 

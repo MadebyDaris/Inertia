@@ -51,30 +51,80 @@ pub trait PhysicsObject {
     type MomentOfInertia: Sized;
     type EulerAngles: Sized;
     type CollisionObject;
-    
-    fn update_velocity(&mut self, delta_time: f32) {
-    }
 
-    fn update_geometry(&mut self, delta_time: f32) {
-    }
-
-    fn update_orientation(&mut self, delta_time: f32) {
-    }
-
-    fn law_of_momentum(&mut self) {
-    }
-
-    // Calculate total torque from the list of torques
-    fn total_torque(&self) -> Vector;
-
-    // Calculate torque based on applied force and point of application
-    fn calculate_torque(&mut self, force: Force, point: Vector) -> Vector;
-
-    // Update angular acceleration based on applied torque and moment of inertia
-    fn update_angular_acceleration(&mut self, torque: Vector, moment_of_inertia: f32);
-    // get function
+    // Required methods
     fn mesh(&self) -> &Self::Mesh;
     fn position(&self) -> Vector;
+    fn mass(&self) -> f32;
+    fn moment_of_inertia(&self) -> f32;
+    fn velocity(&self) -> Vector;
+    fn velocity_mut(&mut self) -> &mut Vector;
+    fn acceleration(&self) -> Vector;
+    fn acceleration_mut(&mut self) -> &mut Vector;
+    fn angular_velocity(&self) -> Vector;
+    fn angular_velocity_mut(&mut self) -> &mut Vector;
+    fn angular_acceleration(&self) -> Vector;
+    fn angular_acceleration_mut(&mut self) -> &mut Vector;
+    fn euler_angles(&self) -> &EulerAngles;
+    fn euler_angles_mut(&mut self) -> &mut EulerAngles;
+    fn forces(&self) -> &Vec<Force>;
+    fn forces_mut(&mut self) -> &mut Vec<Force>;
+    fn torques(&self) -> &Vec<Vector>;
+    fn torques_mut(&mut self) -> &mut Vec<Vector>;
+    fn mesh_mut(&mut self) -> &mut Self::Mesh;
+
+
+    // Provided methods
+    fn update_velocity(&mut self, delta_time: f32) where Self: Sized {
+        *self.velocity_mut() += self.acceleration() * delta_time;
+        *self.angular_velocity_mut() += self.angular_acceleration() * delta_time;
+    }
+
+    fn update_geometry(&mut self, delta_time: f32) where Self: Sized {
+        self.mesh_mut().translate(self.velocity().0 * delta_time, self.velocity().1 * delta_time, self.velocity().2 * delta_time);
+        self.mesh_mut().rotate(self.euler_angles().pitch, self.euler_angles().yaw, self.euler_angles().roll);
+    }
+
+    fn law_of_momentum(&mut self) where Self: Sized {
+        let mut resultant_force = Vector(0., 0., 0.);
+        for force in self.forces() {
+            resultant_force += force.direction * force.magnitude
+        }
+        if self.mass() != 0.0 {
+            *self.acceleration_mut() = resultant_force / self.mass();
+        } else {
+            *self.acceleration_mut() = Vector(0.0, 0.0, 0.0);
+        }
+        let total_torque = self.total_torque();
+        *self.angular_acceleration_mut() = total_torque / self.moment_of_inertia();
+
+        self.torques_mut().clear();
+        self.forces_mut().clear();
+    }
+
+    fn total_torque(&self) -> Vector where Self: Sized {
+        self.torques().iter().fold(Vector(0., 0., 0.), |acc, t| acc + *t)
+    }
+
+    fn calculate_torque(&mut self, force: Force, point: Vector) -> Vector where Self: Sized {
+        let direction = self.position() - point;
+        Vector::cross(direction, force.direction * force.magnitude)
+    }
+
+    fn update_angular_acceleration(&mut self, torque: Vector, moment_of_inertia: f32) where Self: Sized {
+        *self.angular_acceleration_mut() = torque / moment_of_inertia;
+    }
+
+    fn update_orientation(&mut self, delta_time: f32) where Self: Sized {
+        self.euler_angles_mut().pitch += self.angular_velocity().0 * delta_time;
+        self.euler_angles_mut().yaw += self.angular_velocity().1 * delta_time;
+        self.euler_angles_mut().roll += self.angular_velocity().2 * delta_time;
+
+        self.euler_angles_mut().pitch %= std::f32::consts::TAU;
+        self.euler_angles_mut().yaw %= std::f32::consts::TAU;
+        self.euler_angles_mut().roll %= std::f32::consts::TAU;
+    }
+
     fn intersects(&self, ray: &Ray) -> Option<f32>;
 }
     
