@@ -68,7 +68,15 @@ impl<'a> PhysicsWorld<'a> {
                 perspective: cam.pers_mat.matrix,               // Camera's perspective matrix
                 u_light_direction: u_light.u_light_direction,   // Light source direction
                 u_light_color: u_light.u_light_color,           // Light source color
-                tex: &mesh_object.texture                       // Texture to apply to the mesh
+                tex: &mesh_object.texture,                      // Texture to apply to the mesh
+                material_color: mesh_uniform.material.color,
+                emission_strength: mesh_uniform.material.emission_strength,
+                roughness: mesh_uniform.material.roughness,
+                metallic: mesh_uniform.material.metallic,
+                specular_intensity: mesh_uniform.material.specular_intensity,
+                shininess: mesh_uniform.material.shininess,
+                ambient_occlusion: mesh_uniform.material.ambient_occlusion,
+                camera_position: [self.camera.position.0, self.camera.position.1, self.camera.position.2],
             };
             // Draw the mesh object using the provided vertex buffer, indices, shaders, and uniforms
             target.draw(&mesh_object.vert_buffer, &index_buffer, &mesh_object.program, &uni, &params).unwrap();

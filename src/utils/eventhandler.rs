@@ -32,7 +32,7 @@ pub fn handle_events(windows: &glium::winit::window::Window, events: &Vec<event:
             }
             // Handle window events
             event::Event::WindowEvent { event, .. } => {
-                widget_manager.egui.on_event(windows, event);
+                let _ = widget_manager.egui.on_event(windows, event);
                 _camera.right_clicking_mouse(event);
                 match event {
                     WindowEvent::Resized(size) => {
@@ -49,9 +49,20 @@ pub fn handle_events(windows: &glium::winit::window::Window, events: &Vec<event:
                     WindowEvent::KeyboardInput { event, .. } => {
                         time.input(event);
                         _camera.input(event); // Pass keyboard input to camera
-                        if event.state == ElementState::Pressed 
-                           && event.logical_key == glium::winit::keyboard::Key::Named(glium::winit::keyboard::NamedKey::Escape) {
-                            action = Action::Stop; // Stop on Escape key press
+                        
+                        if event.state == ElementState::Pressed {
+                            match event.logical_key {
+                                glium::winit::keyboard::Key::Named(glium::winit::keyboard::NamedKey::Escape) => {
+                                    action = Action::Stop;
+                                }
+                                glium::winit::keyboard::Key::Named(glium::winit::keyboard::NamedKey::Space) => {
+                                    time.toggle_pause();
+                                }
+                                glium::winit::keyboard::Key::Character(ref c) if c.as_str() == "r" || c.as_str() == "R" => {
+                                    time.toggle_reverse();
+                                }
+                                _ => {}
+                            }
                         }
                     }
                     _ => {

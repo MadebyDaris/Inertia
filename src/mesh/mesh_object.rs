@@ -1,10 +1,11 @@
-use std::{fs::File, io::Read};
+use std::{fs::File, io::Read, rc::Rc};
 use std::io::*;
 use glium::texture::SrgbTexture2d;
 use glium::{implement_vertex, vertex::VertexBufferAny, Display, Program};
 
 use crate::mesh::*;
 use crate::utils::matrix::TransformMatrix;
+use crate::render::shader_system::{self, MaterialProperties, ShaderType};
 
 
 
@@ -21,40 +22,56 @@ pub struct MeshData {
     pub verts: Vec<Vertex> 
 }
 
-// Structure used by the engine to get links toshaders
+// Structure used by the engine to get links to shaders
 #[derive(Clone)]
 pub struct ShaderData {
-    pub vertex_shader: String,
-    pub fragment_shader: String,
     pub tex_filename: String,
+    pub shader_type: ShaderType,
+    pub material: MaterialProperties,
+}
+
+impl Default for ShaderData {
+    fn default() -> Self {
+        Self {
+            tex_filename: String::new(),
+            shader_type: ShaderType::Diffuse,
+            material: MaterialProperties::default(),
+        }
+    }
 }
 
 #[derive(Clone)]
 pub struct MeshUniforms {
     pub transform: TransformMatrix,
-    pub indices: Vec<u32>
+    pub indices: Vec<u32>,
+    pub material: MaterialProperties,
+    pub shader_type: ShaderType,
 }
 
 pub struct Mesh { 
     pub vert_buffer: VertexBufferAny,
-    pub program: Program,
+    pub program: Rc<Program>,
     pub texture: SrgbTexture2d,
 }
 impl Mesh {
     // Using another function specified in "../mod.rs" we get the data from an obj this is to make the
     // process more broad 
-    pub fn new(screen: &Display<WindowSurface>, object_data: &Vec<mesh_object::Vertex>, shader_data: ShaderData) -> Mesh {
-        let (tex_s, vertex_s, fragment_s):(&str, &str, &str) = 
-        (shader_data.tex_filename.as_str(), 
-         shader_data.vertex_shader.as_str(), 
-         shader_data.fragment_shader.as_str());
+    pub fn new(screen: &Display<WindowSurface>, object_data: 
+        &Vec<mesh_object::Vertex>, 
+        shader_data: ShaderData, 
+        shader_manager: &shader_system::ShaderManager) -> Mesh {
+
+        let program = shader_manager.get_program(shader_data.shader_type)
+            .expect("Failed to get shader program");
+        let tex_s : &str = 
+            shader_data.tex_filename.as_str();
         
         let tex = Mesh::texture(screen, &tex_s);
         let vert_buffer = VertexBuffer::new(screen, object_data).unwrap().into();
         let mesh =  Mesh { 
-            vert_buffer, 
-            program: Mesh::compile_program(screen, &vertex_s, &fragment_s),
-            texture: tex, 
+            vert_buffer,
+            program: Rc::clone(program),
+            texture: tex,
         };
         return mesh
     }

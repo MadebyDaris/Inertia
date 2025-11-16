@@ -1,6 +1,6 @@
 extern crate glium;
 use std::{num::NonZeroU32, time::{Duration, Instant}};
-use glium::{glutin::{display::GetGlDisplay, self, prelude::{GlDisplay, NotCurrentGlContext}, surface::WindowSurface}, winit::{dpi::LogicalSize, error::EventLoopError, event::{Event, StartCause}, event_loop::{ControlFlow, EventLoop}, raw_window_handle::HasWindowHandle, window::{Window, WindowAttributes}}};
+use glium::{glutin::{display::GetGlDisplay, self, prelude::{GlDisplay, NotCurrentGlContext}, surface::WindowSurface}, winit::{dpi::LogicalSize, error::EventLoopError, event::{Event, StartCause}, event_loop::{ControlFlow, EventLoop}, raw_window_handle::HasWindowHandle, window::{Window, WindowAttributes, Icon}}};
 use glutin_winit::DisplayBuilder;
 
 #[derive(Clone,Copy)]
@@ -19,10 +19,21 @@ impl Inertia {
 
         let event_loop = EventLoop::new().expect("Eventloop failed to be created");
 
+    // Load window icon
+        let icon_image = image::open("inertia-app.png")
+            .expect("Failed to load icon")
+            .to_rgba8();
+        let (icon_width, icon_height) = icon_image.dimensions();
+        let icon_rgba = icon_image.into_raw();
+        let icon = Icon::from_rgba(icon_rgba, icon_width, icon_height)
+            .expect("Failed to create icon");
+
     // ATTRIBUTES
         let window_attributes = WindowAttributes::default()
             .with_resizable(true)
-            .with_inner_size(LogicalSize::new(1024, 700)).with_title("Inertia");
+            .with_inner_size(LogicalSize::new(1024, 700))
+            .with_title("Inertia")
+            .with_window_icon(Some(icon));
         let template_builder = glutin::config::ConfigTemplateBuilder::new();
         let display_builder = DisplayBuilder::new().with_window_attributes(Some(window_attributes));
 

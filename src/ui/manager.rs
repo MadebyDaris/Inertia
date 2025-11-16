@@ -1,6 +1,6 @@
 use std::vec;
 
-use egui::{Context as EguiContext, Ui, ViewportId};
+use egui::{Context as EguiContext, ViewportId};
 use egui_glium::EguiGlium;
 use glium::{glutin::surface::WindowSurface, winit::{event_loop::EventLoop, window::Window}, Display};
 use crate::ui::control_requests::*;
@@ -30,7 +30,7 @@ pub struct WidgetManager {
     pub orbit_visualizer: OrbitVisualizerWidget,
 }
 
-// 
+ 
 // Defining two different types of widgets
 // This is to seperate some widgets that dont have a set Widget response
 pub trait Widget: Clone {
@@ -85,7 +85,7 @@ impl WidgetManager {
     }
     pub fn render_ui<F>(&mut self, window: &Window, display: &Display<WindowSurface>, frame: &mut glium::Frame, mut render_widgets: F) -> Vec<WidgetResponse>
     where
-        F: FnMut(&EguiContext, &mut Ui),
+        F: FnMut(&EguiContext),
     {
         let mut responses: Vec<WidgetResponse> = Vec::new();
         self.egui.run(window, |egui_context| {
@@ -99,7 +99,7 @@ impl WidgetManager {
             self.object_creator.visible = self.control_bar.show_object_creator;
             self.time_controller.visible = self.control_bar.show_time_controller;
             self.force_manager.visible = self.control_bar.show_force_manager;
-            // self.orbit_visualizer.visible = self.control_bar.show_orbit_visualizer;
+            self.orbit_visualizer.visible = self.control_bar.show_orbit_visualizer;
             
 
             if self.object_creator.visible {
@@ -115,20 +115,12 @@ impl WidgetManager {
                 responses.push(ControlWidget::show_control_widget(&mut self.force_manager, egui_context));
             }
             
-            // if self.orbit_visualizer.visible {
-            //     responses.push(ControlWidget::show_control_widget(&mut self.orbit_visualizer, egui_context));
-            // }
+            if self.orbit_visualizer.visible {
+                responses.push(ControlWidget::show_control_widget(&mut self.orbit_visualizer, egui_context));
+            }
 
-            // Render additional widgets
-            egui::SidePanel::left("main_side_panel").show(egui_context, |ui| {
-                
-                    // Run the provided widget rendering function
-                    render_widgets(egui_context, ui);
-
-                    for widget in &self.widgets {
-                        widget.show(egui_context, ui);
-                    }
-                });
+            // Run the provided widget rendering function (which can create panels)
+            render_widgets(egui_context);
             });
 
         self.egui.paint(display, frame);

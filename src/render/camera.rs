@@ -21,8 +21,8 @@ pub struct Camera {
     up: Vector,
 
     _m_position: Vector,
-    yaw: f32,
-    pitch:f32,
+    pub yaw: f32,
+    pub pitch:f32,
 
     moving_up: bool,
     moving_left: bool,
@@ -114,6 +114,12 @@ impl Camera {
         };
     }
 
+    pub fn update_look(&mut self) {
+        self.direction.0 = self.yaw.cos() * self.pitch.cos();
+        self.direction.1 = self.pitch.sin();
+        self.direction.2 = self.yaw.sin() * self.pitch.cos();
+    }
+    
     pub fn look_at(&mut self, event: &DeviceEvent) {
         let _mouse_callback = match *event {              
             DeviceEvent::MouseMotion { delta } => {

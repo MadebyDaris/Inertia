@@ -121,7 +121,13 @@ impl PhysicsObject for Rigidbody {
     }
 
     fn intersects(&self, _ray: &Ray) -> Option<f32> {
-        // TODO: Implement proper intersection logic for a rigidbody
         None
+    }
+}
+
+impl Rigidbody {
+    pub fn update_geometry(&mut self, delta_time: f32) {
+        self.mesh.translate(self.velocity.0 * delta_time, self.velocity.1 * delta_time, self.velocity.2 * delta_time);
+        self.mesh.rotate(self.euler_angles.pitch, self.euler_angles.yaw, self.euler_angles.roll);
     }
 }

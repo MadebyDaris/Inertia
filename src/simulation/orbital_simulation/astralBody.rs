@@ -1,10 +1,11 @@
 use glium::{glutin::surface::WindowSurface, Display};
 
 use crate::{
-    mesh::{sphere::SphereConstructor, Mesh, MeshObject, MeshUniforms, ShaderData}, 
+    mesh::{sphere::SphereConstructor, mesh_object::Mesh, MeshObject, MeshUniforms, ShaderData}, 
     physics::{physicsobject::PhysicsObject, position_euclidean, EulerAngles, Force}, 
-    render::ray::Ray, // Added Ray
-    ui::AstralBodyInfoWidget, utils::{matrix::TransformMatrix, vector::Vector}
+    render::{ray::Ray, shader_system::ShaderManager},
+    ui::AstralBodyInfoWidget, 
+    utils::{matrix::TransformMatrix, vector::Vector}
 };
 
 
@@ -217,17 +218,28 @@ impl AstralBody{
     pub fn add_force(&mut self, force: Force) {
         self.forces.push(force);
     }
+
+    pub fn update_geometry(&mut self, delta_time: f32) {
+        self.mesh.translate(self.velocity.0 * delta_time, self.velocity.1 * delta_time, self.velocity.2 * delta_time);
+        self.mesh.rotate(self.euler_angles.pitch, self.euler_angles.yaw, self.euler_angles.roll);
+    }
 }
 
 //
 // Sphere factory
 //
 impl SphereConstructor {
-    pub fn sphere_physics_object(&self, velocity: Vector, mass: f32, screen: &Display<WindowSurface>, shader_data: ShaderData) -> AstralBody{
+    pub fn sphere_physics_object(&self, velocity: Vector, mass: f32, screen: &Display<WindowSurface>, shader_data: ShaderData, shader_manager: &ShaderManager) -> AstralBody{
         let (data, indices) = self.new();
         let mesh = MeshObject {
-            data: Mesh::new(screen, &data.verts, shader_data),
-            uniforms: MeshUniforms { transform: TransformMatrix::identity(), indices },};
+            data: Mesh::new(screen, &data.verts, shader_data.clone(), shader_manager),
+            uniforms: MeshUniforms { 
+                transform: TransformMatrix::identity(), 
+                indices,
+                material: shader_data.material,
+                shader_type: shader_data.shader_type,
+            },
+        };
         let moment_of_inertia = (2.0 / 5.0) * mass * self.radius.powi(2);
         return AstralBody { 
             mesh, 

@@ -1,7 +1,7 @@
 use crate::{simulation::{classic::rigidbody, simulation::Simulation}, utils::vector::Vector};
 
 pub struct ClassicSimulation {
-    pub owned_objects: Vec<rigidbody::RigidBodyObject>,
+    pub owned_objects: Vec<rigidbody::Rigidbody>,
     pub object_names: Vec<String>,
     pub paused: bool,
     pub time_multiplier: f32,
@@ -11,7 +11,7 @@ pub struct ClassicSimulation {
     pub WorldOrigin: Vector,
 }
 impl Simulation for ClassicSimulation {
-    type Object;
+    type Object = rigidbody::Rigidbody;
 
     fn new() -> Self where Self: Sized {
         todo!()
@@ -45,7 +45,7 @@ impl Simulation for ClassicSimulation {
         todo!()
     }
 
-    fn handle_ui_response(&mut self, response: crate::ui::WidgetResponse, display: &glium::Display<glium::glutin::surface::WindowSurface>) {
+    fn handle_ui_response(&mut self, _response: crate::ui::WidgetResponse, _display: &glium::Display<glium::glutin::surface::WindowSurface>, _shader_manager: &crate::render::shader_system::ShaderManager) {
         todo!()
     }
 

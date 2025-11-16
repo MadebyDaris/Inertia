@@ -1,6 +1,7 @@
 use glium::{glutin::surface::WindowSurface, Display};
 
 use crate::utils::matrix::TransformMatrix;
+use crate::render::shader_system::ShaderManager;
 
 use super::{Mesh, MeshData, MeshObject, ShaderData, Vertex};
 
@@ -62,11 +63,16 @@ impl SphereConstructor {
         return (MeshData { verts: vertices}, indices);
     }
 
-    pub fn sphere_object(&self, screen: &Display<WindowSurface>, shader_data: ShaderData) -> MeshObject{
+    pub fn sphere_object(&self, screen: &Display<WindowSurface>, shader_data: ShaderData, shader_manager: &ShaderManager) -> MeshObject{
         let (data, indices) = self.new();
         return MeshObject {
-            data: Mesh::new(screen, &data.verts, shader_data),
-            uniforms: super::MeshUniforms { transform: TransformMatrix::identity(), indices },
+            data: Mesh::new(screen, &data.verts, shader_data.clone(), shader_manager),
+            uniforms: super::MeshUniforms { 
+                transform: TransformMatrix::identity(), 
+                indices,
+                material: shader_data.material,
+                shader_type: shader_data.shader_type,
+            },
         }
     }
 }

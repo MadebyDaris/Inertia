@@ -16,6 +16,7 @@ pub enum TimeControlCommand {
     Pause,
     SpeedUp(f32),
     SlowDown(f32),
+    SetSpeed(f32), // Set absolute speed multiplier
     Reset,
     GoBackward(f32), // Time travel backward by seconds
 }
@@ -31,8 +32,12 @@ pub enum ForceCommand {
 #[derive(Debug, Clone)]
 pub enum VisualCommand {
     ToggleOrbitTrail { object_name: String, enabled: bool },
+    ToggleTrails(bool),
+    ClearTrails,
     ClearAllTrails,
     SetTrailLength(usize),
     ToggleVelocityVectors(bool),
+    ToggleVelocityArrows(bool),
+    ToggleAccelerationArrows(bool),
     ToggleForceVectors(bool),
 }

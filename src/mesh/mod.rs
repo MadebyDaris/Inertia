@@ -5,8 +5,10 @@ pub use mesh_object::*;
 
 use glium::{glutin::surface::WindowSurface, index::PrimitiveType, uniform, Display, Frame, IndexBuffer, Surface, VertexBuffer};
 use wfobj::*;
+use std::rc::Rc;
 
 use crate::utils::matrix::TransformMatrix;
+use crate::render::shader_system::ShaderManager;
 
 
 
@@ -19,36 +21,60 @@ pub struct MeshObject {
 }
 impl MeshObject {
     // Create a new MeshObject, given data and uniforms
-    pub fn new(screen: &Display<WindowSurface>, object_data: &Vec<mesh_object::Vertex>, indices_raw:Vec<u32>, shader_data: ShaderData) -> MeshObject {
+    pub fn new(screen: &Display<WindowSurface>, object_data: &Vec<mesh_object::Vertex>, indices_raw:Vec<u32>, shader_data: ShaderData, shader_manager: &ShaderManager) -> MeshObject {
         let vert_buffer = VertexBuffer::new(screen, object_data).unwrap().into();
 
         let texture = Mesh::texture(screen, shader_data.tex_filename.as_str());
 
-        let program = Mesh::compile_program(screen, shader_data.vertex_shader.as_str(), shader_data.fragment_shader.as_str());
+        let program = shader_manager.get_program(shader_data.shader_type)
+            .expect("Failed to get shader program");
 
         let data = Mesh {
             vert_buffer,
             texture,
-            program,
+            program: Rc::clone(program),
         };
 
         let uniforms = MeshUniforms {
             transform: TransformMatrix::identity(), // Identity matrix for default
             indices: indices_raw,
+            material: shader_data.material.clone(),
+            shader_type: shader_data.shader_type,
         };
 
         MeshObject { data, uniforms }
     }
     // Render the mesh using the provided uniforms
     pub fn render(&self, screen: &Display<WindowSurface>, target: &mut Frame, view: [[f32; 4]; 4], perspective: [[f32; 4]; 4]) {
-        let indices = IndexBuffer::new(screen, PrimitiveType::TriangleStripAdjacency, &self.uniforms.indices).unwrap();
+        let indices = IndexBuffer::new(screen, PrimitiveType::TrianglesList, &self.uniforms.indices).unwrap();
         // Set uniforms for rendering
         let uniforms = uniform! {
             model: self.uniforms.transform.matrix,
             view: view,
             perspective: perspective,
             tex: &self.data.texture,
+            material_color: self.uniforms.material.color,
+            emission_strength: self.uniforms.material.emission_strength,
+            roughness: self.uniforms.material.roughness,
+            metallic: self.uniforms.material.metallic,
+            specular_intensity: self.uniforms.material.specular_intensity,
+            shininess: self.uniforms.material.shininess,
+            ambient_occlusion: self.uniforms.material.ambient_occlusion,
+            u_light_direction: [0.5_f32, -0.5_f32, 0.5_f32],
+            u_light_color: [1.0_f32, 1.0_f32, 1.0_f32],
+            camera_position: [0.0_f32, 50.0_f32, 80.0_f32],
         };
+        
+        let params = glium::DrawParameters {
+            depth: glium::Depth {
+                test: glium::DepthTest::IfLess,
+                write: true,
+                .. Default::default()
+            },
+            blend: glium::Blend::alpha_blending(),
+            .. Default::default()
+        };
+        
         // Draw call
         target
             .draw(
@@ -56,7 +82,7 @@ impl MeshObject {
                 &indices,
                 &self.data.program,
                 &uniforms,
-                &Default::default(),
+                &params,
             )
             .unwrap();
     }

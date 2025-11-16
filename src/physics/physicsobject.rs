@@ -76,13 +76,11 @@ pub trait PhysicsObject {
 
     // Provided methods
     fn update_velocity(&mut self, delta_time: f32) where Self: Sized {
-        *self.velocity_mut() += self.acceleration() * delta_time;
-        *self.angular_velocity_mut() += self.angular_acceleration() * delta_time;
-    }
-
-    fn update_geometry(&mut self, delta_time: f32) where Self: Sized {
-        self.mesh_mut().translate(self.velocity().0 * delta_time, self.velocity().1 * delta_time, self.velocity().2 * delta_time);
-        self.mesh_mut().rotate(self.euler_angles().pitch, self.euler_angles().yaw, self.euler_angles().roll);
+        let acc = self.acceleration();
+        *self.velocity_mut() += acc * delta_time;
+        
+        let ang_acc = self.angular_acceleration();
+        *self.angular_velocity_mut() += ang_acc * delta_time;
     }
 
     fn law_of_momentum(&mut self) where Self: Sized {
