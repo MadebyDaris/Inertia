@@ -1,4 +1,4 @@
 pub mod simulation;
 pub mod timeutil;
-pub mod orbital_simulation;
-pub mod classic;
+pub mod basic_simulation;
+pub mod quantum_simulation;

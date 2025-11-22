@@ -16,13 +16,13 @@ pub struct Vertex { pub(crate) position: [f32; 3],
                     pub(crate) tex_coords: [f32; 2]}
 implement_vertex!(Vertex, position, normal, tex_coords);
 
-// Structure used to describe the vertices of the mesh object .
+// Structure used to describe the vertices of the mesh object.
 #[derive(Clone)]
 pub struct MeshData {
     pub verts: Vec<Vertex> 
 }
 
-// Structure used by the engine to get links to shaders
+// Structure used by the engine to get links to shaders.
 #[derive(Clone)]
 pub struct ShaderData {
     pub tex_filename: String,

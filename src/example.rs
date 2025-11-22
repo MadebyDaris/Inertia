@@ -1,48 +1,107 @@
 use std::f32::consts::PI;
 
+use glium::Surface;
+use glium::glutin::display::GetGlDisplay;
+use glium::glutin::display::GlDisplay as _;
+use crate::mesh::axis_lines::AxisLines;
+use crate::mesh::barrier::BarrierMesh;
 use crate::mesh::grid_floor::GridFloor;
 use crate::mesh::ShaderData;
-use crate::physics::physicsworld::PhysicsWorld;
 use crate::physics::world::DiffuseLight;
 use crate::render::scene_ui::SceneUIRenderer;
 use crate::render::{Camera, CameraMat};
 use crate::render::shader_system::ShaderManager;
-use crate::simulation::orbital_simulation::GalaxySimulation;
+use crate::simulation::quantum_simulation::quantum_sim::QuantumSimulation;
 use crate::simulation::simulation::Simulation;
 use crate::simulation::timeutil::SimulationTime;
-use crate::ui::{DebugRenderer, DebugVisualization, HoverSystem, NameplateRenderer, PhysicsUI, WidgetManager};
+use crate::ui::WidgetManager;
 use crate::utils::app::Inertia;
 use crate::utils::eventhandler::handle_events;
 use crate::utils::vector::Vector;
+
 #[allow(unused_must_use)]
 pub fn example() {
     // Initialize application
-    let (display, event_loop, window) = Inertia::new();
+    let (display, event_loop, window, gl_config) = Inertia::new();
 
     // Initialize shader manager
     let mut shader_manager = ShaderManager::new();
     shader_manager.initialize_shaders(&display);
-  let mut time = SimulationTime::new(0.016);
-    time.set_time_acceleration(1.0);
-    time.toggle_pause();
+
+    // Initialize OpenGL for compute shaders (must be done after creating display)
+    gl::load_with(|ptr| {
+        let c_str = std::ffi::CString::new(ptr).unwrap();
+        gl_config.display().get_proc_address(&c_str)
+    });
+    
+    let mut time = SimulationTime::new(0.01);
+    time.set_time_acceleration(10.0);
+
     let mut camera = Camera::new(&display);
-    camera.position = Vector(0.0, 50.0, 80.0);
+    camera.position = Vector(0.0, -10.0, 80.0);
     camera.yaw = -PI / 2.0;
     camera.pitch = -0.3;
     camera.update_look();
     camera.update();
 
-    let mut simulation = GalaxySimulation::new();
-    simulation.create_solar_system(&display, &mut shader_manager);
+    // Create quantum simulation with 256*256 grid
+    let mut simulation = QuantumSimulation::new(&display, 256);
 
-    let light = DiffuseLight {
+    // CURRENTLY BROKEN
+    // simulation.setup_plane_wave(
+    //     &display,
+    //     3.0,
+    //     0.0,
+    //     0.3,
+    // );
+    
+    simulation.setup_gaussian_wave_packet(
+        &display,
+        -3.5,
+        0.0,
+        0.5,
+        30.0,
+        0.0,
+    );
+    
+    simulation.setup_double_slit(
+        &display,
+        0.0,
+        0.1,
+        0.4,
+        1.0,
+        50.0,
+    );
+    
+    // Create visual barrier mesh
+    let mut barrier_mesh = BarrierMesh::new(
+        &display,
+        &shader_manager,
+        0.0,
+        0.1,
+        0.4,
+        1.0,
+        10.0,
+    );
+
+    barrier_mesh.transform = barrier_mesh.transform
+            .scale(10.0, 1.0, 10.0)
+            .translate(0.0, -10.0, 0.0);
+    
+    simulation.quantum_object.set_height_scale(20.0);
+    simulation.quantum_object.transform = simulation.quantum_object.transform
+        .scale(100., 1., 100.)
+        .translate(0., -5., 0.);
+    
+    simulation.paused = false;
+    time.paused = false;
+
+    let _light = DiffuseLight {
         u_light_color: (1.0, 1.0, 1.0),
         u_light_direction: (0.5, -0.5, 0.5),
     };
     let mut widget_manager = WidgetManager::new(&display, &window, &event_loop);
-    let scene_ui_renderer = SceneUIRenderer::new(&display);
-    let mut hover_system = HoverSystem::new();
-    let mut debug_viz = DebugVisualization::default();
+    let _scene_ui_renderer = SceneUIRenderer::new(&display);
 
     let grid = GridFloor::new(500.0, 20, [0.15, 0.15, 0.15]);
     let grid_shader = ShaderData {
@@ -55,70 +114,95 @@ pub fn example() {
     };
     let grid_mesh = grid.create_mesh(&display, grid_shader, &shader_manager);
 
+    let axis_lines = AxisLines::new(&display, &shader_manager, 50.0);
+
 // 
 //  RENDERING LOOP
 //
     Inertia::update(event_loop, move |events| {
-        let mut frame = display.draw();
-        let (width, height) = display.get_framebuffer_dimensions();
+        // PHYSICS & COMPUTE STEP
+        // Run raw OpenGL compute operations BEFORE creating the Glium frame
+        // Or weird black artifact stuff
 
-        // Update mouse position
-        for event in events {
-            if let glium::winit::event::Event::WindowEvent { event, .. } = event {
-                if let glium::winit::event::WindowEvent::CursorMoved { position, .. } = event {
-                    hover_system.update_mouse_position(position.x as f32, position.y as f32);
-                }
+        time.update(1.5);
+
+        if !time.paused {
+            let num_substeps = 10;
+            for _ in 0..num_substeps {
+                simulation.evolve_wavefunction(&display, time.accelerated_delta_time / num_substeps as f32);
             }
         }
+        // simulation.calculate_probability_density();
+        // very very broken
 
-        simulation.update(time.accelerated_delta_time);
+        // RENDERING STEP
+        let mut frame = display.draw();
+        frame.clear_color_and_depth((0.0, 0.0, 0.0, 1.0), 1.0);
+        let (width, height) = display.get_framebuffer_dimensions();
 
         camera.update();
         let mut camera_mat = CameraMat {
             view_mat: camera.view_matrix(),
             pers_mat: camera.get_perspective(width as f32 / height as f32, PI / 3.0, 1024.0, 0.1),
         };
-        time.update(1.5); // Acceleration multiplier per key press
 
-        hover_system.update_hover(&camera, &camera_mat, &mut simulation, light, width, height);
-
-        let object_refs = simulation.get_physics_object_refs();
-        let mut world = PhysicsWorld::new(object_refs, camera, light);
-        world.render(&display, &mut frame, &camera_mat, light, (0.02, 0.02, 0.02, 1.0));
-
-        if debug_viz.show_grid {
-            grid_mesh.render(&display, &mut frame, camera_mat.view_mat.matrix, camera_mat.pers_mat.matrix);
-        }
+        simulation.render(&display, &mut frame, camera_mat.view_mat.matrix, camera_mat.pers_mat.matrix);
         
-        DebugRenderer::render_debug_ray(&display, &mut frame, &hover_system, &camera_mat);
+        barrier_mesh.render(&display, &mut frame, camera_mat.view_mat.matrix, camera_mat.pers_mat.matrix);
         
-        for ui_object in &simulation.scene_ui_objects {
-            scene_ui_renderer.render(&display, &mut frame, &camera, ui_object);
-        }
+        axis_lines.render(&display, &mut frame, camera_mat.view_mat.matrix, camera_mat.pers_mat.matrix);
+        
+        grid_mesh.render(&display, &mut frame, camera_mat.view_mat.matrix, camera_mat.pers_mat.matrix);
 
         let ui_responses = widget_manager.render_ui(&window, &display, &mut frame, |ctx| {
-            PhysicsUI::configure_theme(ctx);
-            PhysicsUI::render_toolbar(ctx, &time, &hover_system, &simulation);
-            let shoot_ray = PhysicsUI::render_control_panel(ctx, &time, &simulation, &hover_system, &mut debug_viz);
-            NameplateRenderer::render(ctx, &simulation, &camera_mat, &hover_system, width, height);
-            
-            // Handle ray shooting button click
-            if shoot_ray {
-                hover_system.shoot_debug_ray(&camera, &camera_mat, width, height);
-            }
-            
-            // Render egui debug visualizations
-            if debug_viz.show_velocity_vectors {
-                DebugRenderer::render_velocity_vectors(ctx, &simulation, &camera_mat, width, height);
-            }
-            
-            if debug_viz.show_acceleration_vectors {
-                DebugRenderer::render_acceleration_vectors(ctx, &simulation, &camera_mat, width, height);
-            }
-            
-            if debug_viz.show_orbital_trails {
-                DebugRenderer::render_orbital_trails(ctx, &simulation, &camera_mat, width, height);
-            }
+            egui::Window::new("Inertia Quantum Simulation")
+                .default_pos([10.0, 10.0])
+                .default_width(300.0)
+                .show(ctx, |ui| {
+                    ui.heading("Quantum Mechanics Simulation");
+                    ui.separator();
+                    
+                    // Playback Controls
+                    ui.horizontal(|ui| {
+                        if ui.button(if time.paused { "▶ Play" } else { "⏸ Pause" }).clicked() {
+                            time.toggle_pause();
+                            simulation.paused = time.paused;
+                        }
+                        ui.label(format!("Time: {:.3}s", simulation.time));
+                    });
+                    
+                    ui.separator();
+                    
+                    ui.label(format!("Grid: {}×{} points", simulation.grid_size().0, simulation.grid_size().1));
+                    ui.label(format!("Domain: -5.0 to +5.0 units")); // Changing this will break shit
+                    ui.label(format!("Time Scale: {:.2}×", time.accelerated_time_factor));
+                    ui.label(format!("Frame Delta: {:.3}ms", time.accelerated_delta_time * 1000.0));
+                    
+                    ui.separator();
+                    
+                    ui.label("Wave Packet:");
+                    ui.label(format!("  Position: x={:.2}", -3.5 + simulation.time * 20.0 * 0.01));
+                    ui.label(format!("  Momentum: k={:.1}", 20.0));
+                    ui.label(format!("  Width: σ ={:.2}", 0.5));
+                    
+                    ui.separator();
+                    
+                    ui.label("Visualization:");
+                    let mut height_scale = simulation.quantum_object.height_scale;
+                    if ui.add(egui::Slider::new(&mut height_scale, 0.1..=50.0)
+                        .text("Height Scale")
+                        .logarithmic(true)).changed() {
+                        simulation.quantum_object.set_height_scale(height_scale);
+                    }
+                    
+                    ui.separator();
+                    
+                    ui.label("Physics:");
+                    ui.label(format!("  ℏ (hbar): {:.3}", simulation.params.hbar));
+                    ui.label(format!("  Mass: {:.3}", simulation.params.mass));
+                    ui.label(format!("  Δx: {:.5}", simulation.params.dx));
+                    ui.label(format!("  Δt: {:.6}", simulation.params.dt));
+                });
         });
 
         for response in ui_responses {

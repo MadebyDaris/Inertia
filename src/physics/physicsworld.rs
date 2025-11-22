@@ -1,5 +1,5 @@
 use super::super::render::*;
-use crate::{mesh::MeshObject, physics::{physicsobject::*, world::DiffuseLight, EulerAngles, Force}, render::ray::Ray, simulation::orbital_simulation::astralBody::AstralCollisionObject, utils::vector::Vector};
+use crate::{mesh::MeshObject, physics::{physicsobject::*, world::DiffuseLight, EulerAngles, Force}, render::ray::Ray, utils::vector::Vector};
 
 use glium::{glutin::surface::WindowSurface, index::PrimitiveType, uniform, Display, Frame, IndexBuffer, Surface};
 

@@ -8,7 +8,6 @@ edition = "2024"
 [dependencies]
 glium = "0.36"
 glutin-winit = "0.5.0"
-# wfobj = { git = "https://github.com/nidirene/wfobj.git" }
 wfobj = { git = "https://github.com/nidirene/wfobj.git" }
 image = "*"
 noise = "*"
@@ -20,3 +19,5 @@ egui = { version = "0.29", default-features = false, features = [
 egui-winit = { version = "0.29", default-features = false }
 egui_glium = "0.29.0"
 gltf = { version = "1.4.1" }
+num = "0.4.3"
+gl = "0.14"

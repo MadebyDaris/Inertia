@@ -5,17 +5,11 @@ use std::{collections::HashMap, fs::File, io::Read, rc::Rc};
 /// Shader type enumeration for different material properties
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ShaderType {
-    /// Basic diffuse lighting with texture
     Diffuse,
-    /// Emissive shader for light-emitting objects (stars, etc.)
     Emission,
-    /// Glossy/specular shader with shininess
     Glossy,
-    /// Physically-based rendering shader
     PBR,
-    /// Unlit shader (no lighting calculations)
     Unlit,
-    /// Custom shader loaded from files
     Custom(usize),
 }
 

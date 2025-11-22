@@ -3,7 +3,6 @@ use std::{default, ops::{Add, AddAssign}};
 use crate::{mesh::MeshObject, utils::vector::Vector};
 
 pub mod physicsobject;
-pub mod physicsworld;
 pub mod physicsinterface;
 pub mod world;
 
@@ -17,6 +16,7 @@ pub struct Force {
     pub direction: Vector,
     pub magnitude: f32
 }
+#[derive(Clone, Copy, Debug)]
 pub struct EulerAngles {
     pub pitch: f32, // Rotation around the X-axis
     pub yaw: f32,   // Rotation around the Y-axis

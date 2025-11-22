@@ -1,6 +1,9 @@
 pub mod mesh_object;
 pub mod sphere;
 pub mod grid_floor;
+pub mod axis_lines;
+pub mod quantum_mesh;
+pub mod barrier;
 pub use mesh_object::*;
 
 use glium::{glutin::surface::WindowSurface, index::PrimitiveType, uniform, Display, Frame, IndexBuffer, Surface, VertexBuffer};

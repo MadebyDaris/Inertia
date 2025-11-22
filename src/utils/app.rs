@@ -15,7 +15,8 @@ impl Inertia {
     pub fn new() -> (
         glium::Display<WindowSurface>,
         EventLoop<()>,
-        Window) {
+        Window,
+        glutin::config::Config) {
 
         let event_loop = EventLoop::new().expect("Eventloop failed to be created");
 
@@ -70,7 +71,7 @@ impl Inertia {
         let current_context = not_current_gl_context.unwrap().make_current(&surface).unwrap();
         let display = glium::Display::from_context_surface(current_context, surface).unwrap();
 
-        return ( display, event_loop, window)
+        return ( display, event_loop, window, cfg)
     }
 
     pub fn update<F>(event_loop: EventLoop<()>, mut callback: F) -> Result<(), EventLoopError>

@@ -1,4 +1,4 @@
-use crate::{mesh::MeshObject, physics::{physicsobject::PhysicsObject, position_euclidean, EulerAngles, Force}, simulation::orbital_simulation::AstralCollisionObject, utils::vector::Vector};
+use crate::{mesh::MeshObject, physics::{physicsobject::PhysicsObject, position_euclidean, EulerAngles, Force}, render::ray::Ray, utils::vector::Vector};
 
 pub struct ClassicCollisionObject {
 
@@ -15,7 +15,7 @@ pub type RigidBodyObject = dyn PhysicsObject<
     Torques = Vec<Vector>,
     MomentOfInertia = f32,
     EulerAngles = EulerAngles,
-    CollisionObject = AstralCollisionObject,
+    CollisionObject = ClassicCollisionObject,
 >;
 pub struct Rigidbody {
     pub mesh: MeshObject,
@@ -42,7 +42,7 @@ impl PhysicsObject for Rigidbody {
     type Torques = Vec<Vector>;
     type MomentOfInertia = f32;
     type EulerAngles = EulerAngles;
-    type CollisionObject = AstralCollisionObject;
+    type CollisionObject = ClassicCollisionObject;
 
     fn mesh(&self) -> &Self::Mesh {
         &self.mesh

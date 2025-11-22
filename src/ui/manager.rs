@@ -45,8 +45,8 @@ pub trait ControlWidget {
 // And help organize da widgets
 #[allow(dead_code)]
 pub enum WidgetEnum {
-    AstralBodyInfo(AstralBodyInfoWidget),
-    SimulationInfo(SimulationInfoWidget),
+    // AstralBodyInfo(AstralBodyInfoWidget),
+    // SimulationInfo(SimulationInfoWidget),
     ControlBar(ControlBarWidget),
     ObjectCreator(ObjectCreatorWidget),
     TimeController(TimeControllerWidget),
@@ -56,8 +56,8 @@ pub enum WidgetEnum {
 impl WidgetEnum {
     pub fn show(&self, ctx: &EguiContext, ui: &mut  egui::Ui) {
         match self {
-            WidgetEnum::AstralBodyInfo(widget) => widget.show_widget_in_ui(ctx, ui),
-            WidgetEnum::SimulationInfo(widget) => widget.show_widget_in_ui(ctx, ui),
+            // WidgetEnum::AstralBodyInfo(widget) => widget.show_widget_in_ui(ctx, ui),
+            // WidgetEnum::SimulationInfo(widget) => widget.show_widget_in_ui(ctx, ui),
             WidgetEnum::ControlBar(widget) => widget.show_widget_in_ui(ctx, ui),
             WidgetEnum::ObjectCreator(widget) => widget.show_widget_in_ui(ctx, ui),
             WidgetEnum::TimeController(widget) => widget.show_widget_in_ui(ctx, ui),
