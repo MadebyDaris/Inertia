@@ -61,7 +61,7 @@ void main() {
     vec2 H_psi = kinetic_term + potential_term;
 
 
-// SCHRODINGER EQUATION
+// SCHRODINGER EQUATION (Forward Euler Method)
 
     float inv_hbar = 1.0 / u_hbar;
     vec2 next_psi;
@@ -70,10 +70,10 @@ void main() {
 
     // Apply edge dampening to prevent boundary reflections
     // UV is [0,1], so center is 0.5
-    // float dist_from_center = distance(uv, vec2(0.5));
-    // // Only dampen very near the edges (starts at 95% of radius, fully dampened at edge)
-    // float dampening = smoothstep(0.5, 0.475, dist_from_center);
-    // next_psi *= dampening;
+    float dist_from_center = distance(uv, vec2(0.5));
+    // Only dampen very near the edges (starts at 95% of radius, fully dampened at edge)
+    float dampening = smoothstep(0.5, 0.475, dist_from_center);
+    next_psi *= dampening;
 
     // Write to the output image
     imageStore(u_next_psi, pixel_coords, vec4(next_psi, 0.0, 0.0));

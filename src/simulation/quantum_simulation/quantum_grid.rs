@@ -1,7 +1,7 @@
 use glium::{
     glutin::surface::WindowSurface,
     texture::{Texture2d, UncompressedFloatFormat, MipmapsOption},
-    uniforms::{MagnifySamplerFilter, MinifySamplerFilter, SamplerBehavior},
+    uniforms::{MagnifySamplerFilter, MinifySamplerFilter, SamplerBehavior, SamplerWrapFunction},
     Display, Surface, Frame,
 };
 use glium::framebuffer::SimpleFrameBuffer;
@@ -31,12 +31,18 @@ pub fn create_map(display: &Display<WindowSurface>, width: u32, height: u32) -> 
             height,
             format: glium::texture::ClientFormat::F32,
         };
-        return Texture2d::with_format(
+        let texture = Texture2d::with_format(
             display,
             image,
             UncompressedFloatFormat::F32,
             MipmapsOption::NoMipmap,
-        );
+        )?;
+        
+        // Set wrap mode to ClampToEdge to prevent wrapping at boundaries
+        texture.sampled()
+            .wrap_function(SamplerWrapFunction::Clamp);
+        
+        Ok(texture)
 }
 
 impl QuantumGrid {
@@ -81,7 +87,7 @@ impl QuantumGrid {
     pub fn init_double_slit_potential(
         &mut self,
         display: &Display<WindowSurface>,
-        barrier_x: f32,      // X position of barrier (in grid coordinates, e.g., -5 to +5)
+        barrier_x: f32,
         barrier_thickness: f32,
         slit_width: f32,
         slit_separation: f32,
@@ -99,20 +105,30 @@ impl QuantumGrid {
                 let nx = (x as f32 / width as f32) * self.grid_extent.0 - half_extent_x;
                 let ny = (y as f32 / height as f32) * self.grid_extent.1 - half_extent_y;
                 
-                let mut potential_value = 0.0;
+                // Use Gaussian profile for smoother barrier (prevents wave trapping)
+                // V(x) = height * exp(-(x - barrier_x)² / width²)
+                let x_distance = nx - barrier_x;
+                let gaussian_x = barrier_height * (-((x_distance / barrier_thickness).powi(2))).exp();
                 
-                // Check if we're in the barrier region
-                if (nx - barrier_x).abs() < barrier_thickness / 2.0 {
-                    // We're in the barrier, check if we're in a slit
+                let mut potential_value = gaussian_x;
+                
+                // Cut out slits if specified
+                if slit_width > 0.0 && slit_separation > 0.0 {
                     let upper_slit_center = slit_separation / 2.0;
                     let lower_slit_center = -slit_separation / 2.0;
                     
                     let dist_to_upper = (ny - upper_slit_center).abs();
                     let dist_to_lower = (ny - lower_slit_center).abs();
                     
-                    // If not in either slit, apply barrier potential
-                    if dist_to_upper > slit_width / 2.0 && dist_to_lower > slit_width / 2.0 {
-                        potential_value = barrier_height;
+                    // If in either slit, reduce potential (Gaussian slit profile)
+                    if dist_to_upper < slit_width || dist_to_lower < slit_width {
+                        let slit_factor = if dist_to_upper < dist_to_lower {
+                            (-((dist_to_upper / (slit_width * 0.5)).powi(2))).exp()
+                        } else {
+                            (-((dist_to_lower / (slit_width * 0.5)).powi(2))).exp()
+                        };
+                        // Reduce potential in slit region
+                        potential_value *= 1.0 - slit_factor;
                     }
                 }
                 

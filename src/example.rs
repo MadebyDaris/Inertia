@@ -59,18 +59,18 @@ pub fn example() {
         &display,
         -3.5,
         0.0,
-        0.5,
-        30.0,
+        0.4,
+        25.0,
         0.0,
     );
     
     simulation.setup_double_slit(
         &display,
         0.0,
-        0.1,
-        0.4,
         1.0,
-        50.0,
+        0.0,
+    0.0,
+        340.0,
     );
     
     // Create visual barrier mesh
@@ -78,10 +78,10 @@ pub fn example() {
         &display,
         &shader_manager,
         0.0,
-        0.1,
-        0.4,
-        1.0,
-        10.0,
+        0.3,
+        0.0,
+        0.0,
+        30.0,
     );
 
     barrier_mesh.transform = barrier_mesh.transform
@@ -131,6 +131,8 @@ pub fn example() {
             for _ in 0..num_substeps {
                 simulation.evolve_wavefunction(&display, time.accelerated_delta_time / num_substeps as f32);
             }
+            simulation.calculate_unitarity();
+            simulation.update_auto_export();
         }
         // simulation.calculate_probability_density();
         // very very broken
@@ -196,12 +198,50 @@ pub fn example() {
                     }
                     
                     ui.separator();
+                    ui.label("Export Controls:");
+                    ui.checkbox(&mut simulation.auto_export, "Auto Export");
+                    ui.add(egui::Slider::new(&mut simulation.export_interval, 0.1..=10.0).text("Interval (s)"));
+                    
+                    ui.horizontal(|ui| {
+                        if ui.button("Wavefunction").clicked() {
+                            simulation.export_wavefunction_image();
+                        }
+                        if ui.button("Density").clicked() {
+                            simulation.export_probability_density_image();
+                        }
+                    });
+                    ui.horizontal(|ui| {
+                        if ui.button("Amplitude").clicked() {
+                            simulation.export_amplitude_image();
+                        }
+                        if ui.button("Export All").clicked() {
+                            simulation.export_wavefunction_image();
+                            simulation.export_probability_density_image();
+                            simulation.export_amplitude_image();
+                        }
+                    });
+                    
+                    ui.separator();
                     
                     ui.label("Physics:");
                     ui.label(format!("  ℏ (hbar): {:.3}", simulation.params.hbar));
                     ui.label(format!("  Mass: {:.3}", simulation.params.mass));
                     ui.label(format!("  Δx: {:.5}", simulation.params.dx));
                     ui.label(format!("  Δt: {:.6}", simulation.params.dt));
+                    
+                    ui.separator();
+                    
+                    ui.label("Unitarity Check:");
+                    let unitarity_error = (simulation.total_probability - 1.0).abs();
+                    let color = if unitarity_error < 0.01 {
+                        egui::Color32::GREEN
+                    } else if unitarity_error < 0.05 {
+                        egui::Color32::YELLOW
+                    } else {
+                        egui::Color32::RED
+                    };
+                    ui.colored_label(color, format!("  ∫|ψ|² dx: {:.6}", simulation.total_probability));
+                    ui.label(format!("  Error: {:.2}%", unitarity_error * 100.0));
                 });
         });
 

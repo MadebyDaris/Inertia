@@ -207,12 +207,13 @@ impl ComputeShader {
     /// Wait for compute operations to complete
     pub fn barrier(barrier_type: BarrierType) {
         unsafe {
-            let bits = match barrier_type {
+            let barrier_bit = match barrier_type {
                 BarrierType::ShaderImageAccess => gl::SHADER_IMAGE_ACCESS_BARRIER_BIT,
                 BarrierType::TextureFetch => gl::TEXTURE_FETCH_BARRIER_BIT,
+                BarrierType::ShaderStorageBuffer => gl::SHADER_STORAGE_BARRIER_BIT,
                 BarrierType::All => gl::ALL_BARRIER_BITS,
             };
-            gl::MemoryBarrier(bits);
+            gl::MemoryBarrier(barrier_bit);
         }
     }
     
@@ -248,6 +249,7 @@ pub enum TextureAccess {
 pub enum BarrierType {
     ShaderImageAccess,
     TextureFetch,
+    ShaderStorageBuffer,
     All,
 }
 

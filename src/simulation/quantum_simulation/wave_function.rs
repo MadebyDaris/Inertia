@@ -1,4 +1,4 @@
-use glium::{Display, Texture2d, glutin::surface::WindowSurface, texture::{MipmapsOption, UncompressedFloatFormat}};
+use glium::{Display, Texture2d, glutin::surface::WindowSurface, texture::{MipmapsOption, UncompressedFloatFormat}, uniforms::SamplerWrapFunction};
 pub use num::complex::Complex;
 
 /// Takes a closure that generates (real, imag) for each grid point
@@ -35,12 +35,19 @@ where
         height,
         format: glium::texture::ClientFormat::F32F32,
     };
-    Texture2d::with_format(
+    
+    let texture = Texture2d::with_format(
         display,
         image,
         UncompressedFloatFormat::F32F32,
         MipmapsOption::NoMipmap,
-    ).unwrap()
+    ).unwrap();
+    
+    // Set wrap mode to ClampToEdge to prevent wrapping at boundaries
+    texture.sampled()
+        .wrap_function(SamplerWrapFunction::Clamp);
+    
+    texture
 }
 
 #[derive(Debug, Clone, Copy)]
